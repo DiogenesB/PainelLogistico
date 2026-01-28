@@ -645,6 +645,8 @@
             color: var(--dark);
             margin-bottom: 4px;
             line-height: 1;
+            cursor: help;
+            position: relative;
         }
 
         .kpi-label {
@@ -653,6 +655,43 @@
             font-weight: 500;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+        }
+
+        /* Estilo para tooltip do KPI */
+        .kpi-value[title] {
+            cursor: help;
+            position: relative;
+        }
+
+        .kpi-value[title]:hover::after {
+            content: attr(title);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--dark);
+            color: white;
+            padding: 8px 12px;
+            border-radius: var(--radius-sm);
+            font-size: 12px;
+            white-space: pre-line;
+            z-index: 1000;
+            margin-bottom: 8px;
+            box-shadow: var(--shadow-lg);
+            min-width: 180px;
+            text-align: center;
+            font-weight: normal;
+        }
+
+        .kpi-value[title]:hover::before {
+            content: '';
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 5px solid transparent;
+            border-top-color: var(--dark);
+            margin-bottom: 3px;
         }
 
         /* Tabs */
@@ -1312,6 +1351,16 @@
                     <div class="kpi-content">
                         <div class="kpi-value" id="leadTimeMedio">0h 00min</div>
                         <div class="kpi-label">Lead Time Médio</div>
+                    </div>
+                </div>
+                <!-- NOVO KPI: Média Hora OC Enviada -->
+                <div class="kpi-card">
+                    <div class="kpi-icon">
+                        <i class="fas fa-paper-plane"></i>
+                    </div>
+                    <div class="kpi-content">
+                        <div class="kpi-value" id="mediaHoraOCEnviada">--:--</div>
+                        <div class="kpi-label">Média Hora OC Enviada</div>
                     </div>
                 </div>
                 <div class="kpi-card">
@@ -2212,6 +2261,39 @@
                 return `${horas}h ${minutos.toString().padStart(2, '0')}min`;
             }
 
+            static extrairHoraMinuto(dataHoraStr) {
+                if (!dataHoraStr || dataHoraStr.trim() === '') {
+                    return { hora: null, minuto: null };
+                }
+                
+                try {
+                    // Tentar vários formatos
+                    const formatos = [
+                        /(\d{1,2}):(\d{1,2}):?(\d{0,2})/,  // HH:MM ou HH:MM:SS
+                        /(\d{1,2})h(\d{1,2})/,             // HHhMM
+                        /(\d{1,2})\.(\d{1,2})/,            // HH.MM
+                        /(\d{1,2})\s*[-:]\s*(\d{1,2})/     // HH - MM ou HH:MM com espaços
+                    ];
+                    
+                    for (const formato of formatos) {
+                        const match = dataHoraStr.match(formato);
+                        if (match) {
+                            const hora = parseInt(match[1]);
+                            const minuto = parseInt(match[2]);
+                            
+                            if (hora >= 0 && hora <= 23 && minuto >= 0 && minuto <= 59) {
+                                return { hora, minuto };
+                            }
+                        }
+                    }
+                    
+                    return { hora: null, minuto: null };
+                } catch (error) {
+                    console.warn('Erro ao extrair hora/minuto:', dataHoraStr, error);
+                    return { hora: null, minuto: null };
+                }
+            }
+
             static parseDateTimeFromGoogleSheets(dateTimeStr) {
                 if (!dateTimeStr || dateTimeStr === '' || dateTimeStr === '-' || dateTimeStr === 'null') {
                     return null;
@@ -2865,7 +2947,6 @@
             processarDadosEmAndamento(dados, filialNome) {
                 // Filtrar linhas vazias
                 const dadosFiltrados = dados.filter(item => {
-                    // Verifica se o item tem pelo menos um campo importante preenchido
                     const hasData = item.PEDIDOS || item.CLIENTE || item['NOTA FISCAL'] || item.TRANSPORTADORA;
                     return hasData && hasData.toString().trim() !== '';
                 });
@@ -2886,12 +2967,15 @@
                     
                     const paletes = Utils.parsePaletes(paletesStr);
                     
+                    // Buscar datas de separação com nomes corrigidos
                     const separacaoInicio = Utils.buscarValorPorChaves(item, [
                         'DATA E HORA SEPARAÇÃO INICIAL',
                         'SEPARAÇÃO INICIAL',
                         'INICIO SEPARAÇÃO',
                         'DATA SEPARAÇÃO INICIO',
-                        'INICIO SEPARACAO'
+                        'INICIO SEPARACAO',
+                        'DATA E HORA SEPARACAO INICIAL',
+                        'DATA SEPARACAO INICIAL'
                     ]);
                     
                     const separacaoFinal = Utils.buscarValorPorChaves(item, [
@@ -2900,28 +2984,41 @@
                         'SEPARAÇÃO FINAL',
                         'FIM SEPARAÇÃO',
                         'SEPARACAO FINAL',
-                        'DATA SEPARAÇÃO FIM'
+                        'DATA SEPARAÇÃO FIM',
+                        'DATA E HORA SEPARACAO FINAL'
                     ]);
                     
+                    // LÓGICA MELHORADA PARA STATUS DE SEPARAÇÃO
                     let statusSeparacao = 'Falta Separação';
                     let estaEmSeparacao = false;
                     let separacaoCompleta = false;
                     
-                    if (separacaoInicio && separacaoInicio.trim() !== '') {
-                        if (separacaoFinal && separacaoFinal.trim() !== '') {
+                    // Verificar se tem data de início
+                    const temInicio = separacaoInicio && separacaoInicio.trim() !== '' && 
+                                     separacaoInicio !== '-' && separacaoInicio.toLowerCase() !== 'null';
+                    
+                    // Verificar se tem data de fim
+                    const temFim = separacaoFinal && separacaoFinal.trim() !== '' && 
+                                  separacaoFinal !== '-' && separacaoFinal.toLowerCase() !== 'null';
+                    
+                    if (temInicio) {
+                        if (temFim) {
                             statusSeparacao = 'Separado';
                             separacaoCompleta = true;
                         } else {
                             statusSeparacao = 'Em Separação';
                             estaEmSeparacao = true;
                         }
+                    } else {
+                        statusSeparacao = 'Falta Separação';
                     }
                     
+                    // Criar tooltip informativo
                     let tooltipText = '';
-                    if (separacaoInicio) {
+                    if (temInicio) {
                         tooltipText += `Início: ${separacaoInicio}`;
                     }
-                    if (separacaoFinal) {
+                    if (temFim) {
                         tooltipText += tooltipText ? '\n' : '';
                         tooltipText += `Fim: ${separacaoFinal}`;
                     }
@@ -2940,8 +3037,8 @@
                         ESTA_EM_SEPARACAO: estaEmSeparacao,
                         SEPARACAO_COMPLETA: separacaoCompleta,
                         STATUS_SEPARACAO: statusSeparacao,
-                        TEM_INICIO_SEPARACAO: separacaoInicio && separacaoInicio.trim() !== '',
-                        TEM_FIM_SEPARACAO: separacaoFinal && separacaoFinal.trim() !== '',
+                        TEM_INICIO_SEPARACAO: temInicio,
+                        TEM_FIM_SEPARACAO: temFim,
                         TOOLTIP_SEPARACAO: tooltipText
                     };
                 });
@@ -4254,6 +4351,54 @@
                 const leadTimeMedio = leadTimes.length > 0 ? 
                     (leadTimes.reduce((a, b) => a + b, 0) / leadTimes.length) : 0;
                 
+                // *** NOVO CÁLCULO: Média da hora da OC Enviada ***
+                const minutosOCEnviada = [];
+                
+                dados.forEach(item => {
+                    const dataOC = Utils.buscarValorPorChaves(item, [
+                        'DATA E HORA OC ENVIADA',
+                        'DATA OC ENVIADA',
+                        'OC ENVIADA',
+                        'OC_ENVIADA',
+                        'HORA OC ENVIADA'
+                    ]);
+                    
+                    if (dataOC && dataOC.trim() !== '') {
+                        const horaMinuto = Utils.extrairHoraMinuto(dataOC);
+                        
+                        if (horaMinuto.hora !== null && horaMinuto.minuto !== null) {
+                            // Converter para minutos totais do dia (0-1440)
+                            const minutosDoDia = (horaMinuto.hora * 60) + horaMinuto.minuto;
+                            minutosOCEnviada.push(minutosDoDia);
+                        }
+                    }
+                });
+                
+                let mediaHoraOC = '--:--';
+                let tooltipInfo = '';
+                
+                if (minutosOCEnviada.length > 0) {
+                    // Calcular média dos minutos
+                    const somaMinutos = minutosOCEnviada.reduce((a, b) => a + b, 0);
+                    const mediaMinutos = somaMinutos / minutosOCEnviada.length;
+                    
+                    // Converter minutos de volta para formato hora:minuto
+                    const horas = Math.floor(mediaMinutos / 60);
+                    const minutos = Math.round(mediaMinutos % 60);
+                    
+                    // Formatar para HH:MM
+                    mediaHoraOC = `${horas.toString().padStart(2, '0')}:${minutos.toString().padStart(2, '0')}`;
+                    
+                    // Preparar tooltip com estatísticas
+                    const contagem = minutosOCEnviada.length;
+                    const horaMin = minutosOCEnviada.length > 0 ? 
+                        `${Math.floor(Math.min(...minutosOCEnviada) / 60).toString().padStart(2, '0')}:${Math.round(Math.min(...minutosOCEnviada) % 60).toString().padStart(2, '0')}` : '--:--';
+                    const horaMax = minutosOCEnviada.length > 0 ? 
+                        `${Math.floor(Math.max(...minutosOCEnviada) / 60).toString().padStart(2, '0')}:${Math.round(Math.max(...minutosOCEnviada) % 60).toString().padStart(2, '0')}` : '--:--';
+                    
+                    tooltipInfo = `Baseado em ${contagem} registros\nMínima: ${horaMin}\nMáxima: ${horaMax}`;
+                }
+                
                 // NOVA LÓGICA de atrasos baseada no novo cálculo
                 const atrasosTransportadora = dados.filter(item => item.TIPO_ATRASO === 'ATRASO TRANSPORTADORA').length;
                 const atrasosExpedicao = dados.filter(item => item.TIPO_ATRASO === 'ATRASO EXPEDIÇÃO').length;
@@ -4268,6 +4413,15 @@
                 document.getElementById('totalPaletes').textContent = Utils.formatarNumero(totalPaletes, 2);
                 document.getElementById('atrasosTransportadora').textContent = atrasosTransportadora.toLocaleString('pt-BR');
                 document.getElementById('atrasosExpedicao').textContent = atrasosExpedicao.toLocaleString('pt-BR');
+                
+                // *** ATUALIZAR NOVO KPI ***
+                const mediaHoraElement = document.getElementById('mediaHoraOCEnviada');
+                mediaHoraElement.textContent = mediaHoraOC;
+                if (tooltipInfo) {
+                    mediaHoraElement.title = tooltipInfo;
+                } else {
+                    mediaHoraElement.removeAttribute('title');
+                }
             }
 
             atualizarKPIsRecebimento(dados) {
@@ -4550,6 +4704,4 @@
         });
     </script>
 </body>
-
 </html>
-
