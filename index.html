@@ -51,11 +51,11 @@
         .container {
             max-width: 1600px;
             margin: 0 auto;
-            padding: 24px;
+            padding: 20px;
         }
 
         .container > * {
-            margin-bottom: 24px;
+            margin-bottom: 20px;
         }
 
         .container > *:last-child {
@@ -181,7 +181,7 @@
             background: var(--white);
             border-radius: var(--radius);
             box-shadow: var(--shadow);
-            margin-bottom: 24px;
+            margin-bottom: 20px;
             overflow: hidden;
             transition: var(--transition);
             border: 1px solid var(--border);
@@ -194,7 +194,7 @@
 
         .card-header {
             background: var(--white);
-            padding: 20px 24px;
+            padding: 16px 20px;
             border-bottom: 1px solid var(--border);
             display: flex;
             justify-content: space-between;
@@ -216,7 +216,7 @@
         }
 
         .card-body {
-            padding: 24px;
+            padding: 20px;
         }
 
         /* Loading */
@@ -259,7 +259,31 @@
             gap: 10px;
         }
 
-        /* Botão de Refresh atualizado - mais discreto */
+        /* Indicador de atualização */
+        .update-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+            border-radius: var(--radius-sm);
+            font-size: 0.8rem;
+            color: var(--primary);
+            margin-bottom: 16px;
+            border: 1px solid var(--border);
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .update-indicator i {
+            animation: spin 1s linear infinite;
+        }
+
+        /* Botão de Refresh */
         .btn-refresh-subtle {
             display: inline-flex;
             align-items: center;
@@ -603,7 +627,7 @@
 
         /* Filters */
         .filters-section {
-            margin-bottom: 24px;
+            margin-bottom: 20px;
         }
 
         .filters-grid {
@@ -640,21 +664,21 @@
             line-height: 1.3;
         }
 
-        /* KPIs */
+        /* KPIs - COMPACTADO */
         .kpis-section {
-            margin-bottom: 24px;
+            margin-bottom: 20px;
         }
 
         .kpis-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-            gap: 16px;
-            margin-bottom: 20px;
+            gap: 12px;
+            margin-bottom: 15px;
         }
 
         .kpi-card {
             background: var(--white);
-            padding: 24px 20px;
+            padding: 18px 16px;
             border-radius: var(--radius);
             box-shadow: var(--shadow);
             display: flex;
@@ -666,7 +690,7 @@
             position: relative;
             overflow: hidden;
             height: 100%;
-            min-height: 160px;
+            min-height: 140px;
             justify-content: center;
         }
 
@@ -686,17 +710,17 @@
         }
 
         .kpi-icon {
-            width: 56px;
-            height: 56px;
+            width: 48px;
+            height: 48px;
             display: flex;
             align-items: center;
             justify-content: center;
             background: var(--light);
             border-radius: var(--radius);
             color: var(--primary);
-            font-size: 1.5rem;
+            font-size: 1.3rem;
             box-shadow: var(--shadow);
-            margin-bottom: 16px;
+            margin-bottom: 12px;
             flex-shrink: 0;
         }
 
@@ -710,10 +734,10 @@
         }
 
         .kpi-value {
-            font-size: 1.8rem;
+            font-size: 1.6rem;
             font-weight: 700;
             color: var(--dark);
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             line-height: 1.2;
             cursor: help;
             position: relative;
@@ -724,13 +748,13 @@
 
         .kpi-label {
             color: var(--gray);
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.5px;
             text-align: center;
             width: 100%;
-            line-height: 1.3;
+            line-height: 1.2;
         }
 
         /* Cores para tipos de carregamento nos KPIs */
@@ -797,7 +821,7 @@
 
         /* Tabs */
         .tabs-section {
-            margin-top: 24px;
+            margin-top: 20px;
         }
 
         .tabs {
@@ -805,7 +829,7 @@
             background: var(--white);
             border-radius: var(--radius);
             padding: 6px;
-            margin-bottom: 20px;
+            margin-bottom: 16px;
             box-shadow: var(--shadow);
             gap: 4px;
             border: 1px solid var(--border);
@@ -813,7 +837,7 @@
 
         .tab-btn {
             flex: 1;
-            padding: 14px 20px;
+            padding: 12px 16px;
             border: none;
             background: transparent;
             color: var(--gray);
@@ -854,7 +878,7 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Tables */
+        /* Tables - COMPACTADO */
         .table-container {
             overflow-x: auto;
             border-radius: var(--radius);
@@ -868,27 +892,27 @@
             width: 100%;
             border-collapse: collapse;
             background: var(--white);
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             min-width: 1400px;
         }
 
         .data-table th {
             background: var(--dark-gray);
             color: var(--white);
-            padding: 14px 12px;
+            padding: 10px 8px;
             text-align: left;
             font-weight: 600;
             position: sticky;
             top: 0;
             border-bottom: 2px solid var(--dark);
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             text-transform: uppercase;
             letter-spacing: 0.5px;
             z-index: 5;
         }
 
         .data-table td {
-            padding: 12px 10px;
+            padding: 8px 6px;
             border-bottom: 1px solid var(--border);
             vertical-align: middle;
             color: var(--dark-gray);
@@ -1035,34 +1059,6 @@
             margin-bottom: -5px;
         }
 
-        /* Indicador de atualização automática */
-        .auto-refresh-indicator {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 16px;
-            background: var(--light);
-            border-radius: var(--radius-sm);
-            font-size: 0.8rem;
-            color: var(--gray);
-            margin-bottom: 20px;
-            border: 1px solid var(--border);
-        }
-
-        .auto-refresh-indicator .dot {
-            width: 8px;
-            height: 8px;
-            background: var(--success);
-            border-radius: 50%;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.4; }
-            100% { opacity: 1; }
-        }
-
         /* Indicador de dados em cache */
         .cache-indicator {
             display: flex;
@@ -1073,7 +1069,7 @@
             border-radius: var(--radius-sm);
             font-size: 0.8rem;
             color: var(--primary);
-            margin-bottom: 20px;
+            margin-bottom: 16px;
             border: 1px solid var(--border);
         }
 
@@ -1084,8 +1080,8 @@
 
         /* Novos estilos para filtros melhorados */
         .advanced-filters {
-            margin-top: 20px;
-            padding: 20px;
+            margin-top: 16px;
+            padding: 16px;
             background: var(--light);
             border-radius: var(--radius-sm);
             border: 1px solid var(--border);
@@ -1093,8 +1089,8 @@
         }
 
         .advanced-filters-header {
-            margin-bottom: 16px;
-            padding-bottom: 10px;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
             border-bottom: 1px solid var(--border);
         }
 
@@ -1109,7 +1105,7 @@
         .advanced-filters-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 16px;
+            gap: 12px;
         }
 
         .filter-results {
@@ -1120,9 +1116,9 @@
             color: var(--dark);
             background: linear-gradient(135deg, var(--light) 0%, #e2e8f0 100%);
             border: 1px solid var(--border);
-            padding: 12px;
+            padding: 10px;
             border-radius: var(--radius-sm);
-            margin-top: 16px;
+            margin-top: 12px;
             grid-column: 1 / -1;
         }
 
@@ -1171,13 +1167,13 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 16px;
+            padding: 12px;
             background: var(--white);
             border-bottom: 1px solid var(--border);
             border-radius: var(--radius) var(--radius) 0 0;
             margin-bottom: 0;
             flex-wrap: wrap;
-            gap: 10px;
+            gap: 8px;
         }
 
         .table-pagination-container.bottom {
@@ -1190,7 +1186,7 @@
         .pagination-controls {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 8px;
             flex-wrap: wrap;
         }
 
@@ -1202,8 +1198,8 @@
 
         .pagination-info {
             color: var(--gray);
-            font-size: 0.9rem;
-            min-width: 200px;
+            font-size: 0.85rem;
+            min-width: 180px;
         }
 
         .page-input {
@@ -1212,7 +1208,7 @@
             text-align: center;
             border: 1px solid var(--border);
             border-radius: 4px;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
         }
 
         .page-input:focus {
@@ -1273,26 +1269,27 @@
             
             .kpis-grid {
                 grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-                gap: 14px;
+                gap: 10px;
             }
             
             .kpi-card {
-                padding: 20px 16px;
-                min-height: 150px;
+                padding: 16px 14px;
+                min-height: 130px;
             }
             
             .kpi-icon {
-                width: 50px;
-                height: 50px;
-                font-size: 1.3rem;
+                width: 44px;
+                height: 44px;
+                font-size: 1.2rem;
+                margin-bottom: 10px;
             }
             
             .kpi-value {
-                font-size: 1.6rem;
+                font-size: 1.4rem;
             }
             
             .kpi-label {
-                font-size: 0.8rem;
+                font-size: 0.75rem;
             }
         }
 
@@ -1332,28 +1329,28 @@
             
             .kpis-grid {
                 grid-template-columns: repeat(3, 1fr);
-                gap: 12px;
+                gap: 10px;
             }
             
             .kpi-card {
-                padding: 16px 12px;
-                min-height: 140px;
+                padding: 14px 12px;
+                min-height: 120px;
             }
             
             .kpi-icon {
-                width: 44px;
-                height: 44px;
-                font-size: 1.2rem;
-                margin-bottom: 12px;
+                width: 40px;
+                height: 40px;
+                font-size: 1.1rem;
+                margin-bottom: 8px;
             }
             
             .kpi-value {
-                font-size: 1.4rem;
-                margin-bottom: 6px;
+                font-size: 1.3rem;
+                margin-bottom: 4px;
             }
             
             .kpi-label {
-                font-size: 0.75rem;
+                font-size: 0.7rem;
             }
             
             .tabs {
@@ -1361,13 +1358,13 @@
             }
             
             .data-table {
-                font-size: 0.8rem;
+                font-size: 0.75rem;
                 min-width: 1000px;
             }
             
             .data-table th,
             .data-table td {
-                padding: 10px 8px;
+                padding: 8px 6px;
             }
             
             .filter-actions {
@@ -1376,7 +1373,7 @@
             
             .table-pagination-container {
                 flex-direction: column;
-                gap: 12px;
+                gap: 10px;
                 align-items: stretch;
             }
             
@@ -1390,7 +1387,7 @@
             }
             
             .card-body {
-                padding: 20px;
+                padding: 16px;
             }
             
             .btn-refresh-subtle {
@@ -1402,28 +1399,28 @@
         @media (max-width: 576px) {
             .kpis-grid {
                 grid-template-columns: repeat(2, 1fr);
-                gap: 10px;
+                gap: 8px;
             }
             
             .kpi-card {
-                padding: 14px 10px;
-                min-height: 130px;
+                padding: 12px 10px;
+                min-height: 110px;
             }
             
             .kpi-icon {
-                width: 40px;
-                height: 40px;
-                font-size: 1.1rem;
-                margin-bottom: 10px;
+                width: 36px;
+                height: 36px;
+                font-size: 1rem;
+                margin-bottom: 6px;
             }
             
             .kpi-value {
-                font-size: 1.3rem;
-                margin-bottom: 4px;
+                font-size: 1.2rem;
+                margin-bottom: 3px;
             }
             
             .kpi-label {
-                font-size: 0.7rem;
+                font-size: 0.65rem;
             }
             
             .btn {
@@ -1436,29 +1433,29 @@
             }
             
             .tab-btn {
-                padding: 12px 16px;
+                padding: 10px 14px;
             }
         }
 
         @media (max-width: 400px) {
             .kpis-grid {
                 grid-template-columns: 1fr;
-                gap: 8px;
+                gap: 6px;
             }
             
             .kpi-card {
-                min-height: 120px;
+                min-height: 100px;
                 flex-direction: row;
                 align-items: center;
                 text-align: left;
-                padding: 16px;
+                padding: 14px;
             }
             
             .kpi-icon {
                 margin-bottom: 0;
-                margin-right: 16px;
-                width: 36px;
-                height: 36px;
+                margin-right: 12px;
+                width: 32px;
+                height: 32px;
             }
             
             .kpi-content {
@@ -1467,7 +1464,7 @@
             }
             
             .kpi-value {
-                font-size: 1.2rem;
+                font-size: 1.1rem;
                 text-align: left;
             }
             
@@ -1491,7 +1488,7 @@
                             <span class="subtitle">Análise Logística</span>
                         </div>
                     </div>
-                     <button id="refreshData" class="btn-refresh-subtle" title="Atualizar dados manualmente (dados locais são usados por 30 min)">
+                    <button id="refreshData" class="btn-refresh-subtle" title="Atualizar dados manualmente">
                         <i class="fas fa-sync-alt"></i>
                         <div class="refresh-badge hidden" id="refreshBadge"></div>
                     </button>
@@ -1516,6 +1513,12 @@
         <div class="cache-indicator" id="cacheIndicator" style="display: none;">
             <i class="fas fa-database cache-icon"></i>
             <span>Usando dados locais. Próxima atualização em: <span id="nextUpdateTime">--:--</span></span>
+        </div>
+
+        <!-- Indicador de Atualização -->
+        <div class="update-indicator" id="updateIndicator" style="display: none;">
+            <i class="fas fa-sync-alt"></i>
+            <span>Atualizando dados...</span>
         </div>
 
         <!-- KPIs Dinâmicos -->
@@ -1823,7 +1826,7 @@
                         </div>
                     </div>
                     
-                    <!-- NOVO FILTRO: Tipo de Carregamento -->
+                    <!-- NOVO FILTRO: Tipo de Carregamento - CORRIGIDO -->
                     <div class="filter-group">
                         <label for="tipoCarregamentoExpedicao"><i class="fas fa-shipping-fast"></i> Tipo de Carregamento</label>
                         <div style="position: relative;">
@@ -1832,7 +1835,7 @@
                                 <option value="Fracionado">Fracionado</option>
                                 <option value="Dedicado">Dedicado</option>
                                 <option value="Retira">Retira</option>
-                                <option value="Sem Dados">Sem Dados</option>
+                                <option value="">Sem Dados</option>
                             </select>
                             <button class="filter-clear-btn" data-for="tipoCarregamentoExpedicao" title="Limpar este filtro">×</button>
                         </div>
@@ -2058,7 +2061,7 @@
                             <button class="filter-clear-btn" data-for="statusSeparacao" title="Limpar este filtro">×</button>
                         </div>
                     </div>
-                    <!-- NOVO FILTRO: Tipo de Carregamento (Em Andamento) -->
+                    <!-- NOVO FILTRO: Tipo de Carregamento (Em Andamento) - CORRIGIDO -->
                     <div class="filter-group">
                         <label for="tipoCarregamentoAndamento"><i class="fas fa-shipping-fast"></i> Tipo de Carregamento</label>
                         <div style="position: relative;">
@@ -2067,7 +2070,7 @@
                                 <option value="Fracionado">Fracionado</option>
                                 <option value="Dedicado">Dedicado</option>
                                 <option value="Retira">Retira</option>
-                                <option value="Sem Dados">Sem Dados</option>
+                                <option value="">Sem Dados</option>
                             </select>
                             <button class="filter-clear-btn" data-for="tipoCarregamentoAndamento" title="Limpar este filtro">×</button>
                         </div>
@@ -2251,7 +2254,7 @@
                             </div>
                             <div class="pagination-controls" style="display: flex; align-items: center; gap: 8px;">
                                 <select id="itemsPerPage-top-recebimento" class="select-field" style="width: auto; padding: 6px 10px; font-size: 0.9rem;">
-                                    <option value="10" >10</option>
+                                    <option value="10">10</option>
                                     <option value="25">25</option>
                                     <option value="50"selected>50</option>
                                     <option value="100">100</option>
@@ -2304,7 +2307,7 @@
                             </div>
                             <div class="pagination-controls" style="display: flex; align-items: center; gap: 8px;">
                                 <select id="itemsPerPage-bottom-recebimento" class="select-field" style="width: auto; padding: 6px 10px; font-size: 0.9rem;">
-                                    <option value="10" >10</option>
+                                    <option value="10">10</option>
                                     <option value="25">25</option>
                                     <option value="50"selected>50</option>
                                     <option value="100">100</option>
@@ -2365,7 +2368,7 @@
                                 <select id="itemsPerPage-top-emandamento" class="select-field" style="width: auto; padding: 6px 10px; font-size: 0.9rem;">
                                     <option value="10" selected>10</option>
                                     <option value="25">25</option>
-                                    <option value="50"selected>50</option>
+                                    <option value="50">50</option>
                                     <option value="100">100</option>
                                     <option value="200">200</option>
                                 </select>
@@ -2618,48 +2621,91 @@
                 }
             }
 
-            // NOVA FUNÇÃO: Buscar Tipo de Carregamento
+            // FUNÇÃO CORRIGIDA: Buscar Tipo de Carregamento
             static buscarTipoCarregamento(item) {
-                // Primeiro, verificar todas as chaves possíveis para tipo de carregamento
-                const chavesPossiveis = [
+                // Primeiro, tentar encontrar a coluna exata
+                const chavesExatas = [
                     'TIPO DE CARREGAMENTO',
                     'TIPO_CARREGAMENTO',
                     'TIPO CARREGAMENTO',
-                    'TIPO',
-                    'TIPO CARGA',
                     'CARREGAMENTO TIPO',
-                    'TIPO_DE_CARREGAMENTO',
-                    'CARREGAMENTO',
-                    'MODALIDADE',
-                    'TIPO DE TRANSPORTE',
+                    'TIPO DE CARGA',
                     'TIPO_CARGA',
-                    'TIPO DE SERVIÇO',
-                    'TIPO DE ENTREGA'
+                    'TIPO DE TRANSPORTE',
+                    'MODALIDADE CARGA',
+                    'MODALIDADE',
+                    'TIPO'
                 ];
                 
-                const valor = this.buscarValorPorChaves(item, chavesPossiveis);
+                // Buscar primeiro por chaves exatas
+                for (const chave of chavesExatas) {
+                    if (item[chave] !== undefined && item[chave] !== null && item[chave].toString().trim() !== '') {
+                        const valor = item[chave].toString().trim();
+                        return this.normalizarTipoCarregamento(valor);
+                    }
+                }
                 
+                // Se não encontrou, verificar todas as chaves do objeto
+                for (const chave in item) {
+                    if (item.hasOwnProperty(chave)) {
+                        const chaveUpper = chave.toUpperCase();
+                        // Verificar se a chave contém palavras relacionadas a tipo/carregamento
+                        if ((chaveUpper.includes('TIPO') && chaveUpper.includes('CARREGAMENTO')) || 
+                            (chaveUpper.includes('TIPO') && chaveUpper.includes('CARGA')) ||
+                            chaveUpper.includes('MODALIDADE')) {
+                            const valor = item[chave].toString().trim();
+                            if (valor && valor !== '') {
+                                return this.normalizarTipoCarregamento(valor);
+                            }
+                        }
+                    }
+                }
+                
+                return '';
+            }
+
+            // NOVA FUNÇÃO: Normalizar tipo de carregamento
+            static normalizarTipoCarregamento(valor) {
                 if (!valor || valor.trim() === '') {
                     return '';
                 }
                 
-                // Normalizar o valor para os tipos padrão
-                const valorNormalizado = valor.toString().toUpperCase().trim();
+                const valorUpper = valor.toString().toUpperCase().trim();
                 
                 // Mapear variações para os tipos padrão
-                if (valorNormalizado.includes('FRACIONADO') || valorNormalizado === 'FRAC' || valorNormalizado === 'F' || valorNormalizado === 'FRACIONADA') {
+                if (valorUpper.includes('FRACIONADO') || 
+                    valorUpper === 'FRAC' || 
+                    valorUpper === 'F' || 
+                    valorUpper === 'FRACIONADA' ||
+                    valorUpper.includes('FRACION') ||
+                    valorUpper === 'FRAC.' ||
+                    valorUpper === 'FRAC') {
                     return 'Fracionado';
                 }
-                if (valorNormalizado.includes('DEDICADO') || valorNormalizado === 'DED' || valorNormalizado === 'D') {
+                
+                if (valorUpper.includes('DEDICADO') || 
+                    valorUpper === 'DED' || 
+                    valorUpper === 'D' ||
+                    valorUpper === 'DEDICADA' ||
+                    valorUpper.includes('DEDIC') ||
+                    valorUpper === 'DED.' ||
+                    valorUpper === 'DEDICADO') {
                     return 'Dedicado';
                 }
-                if (valorNormalizado.includes('RETIRA') || valorNormalizado === 'RET' || valorNormalizado === 'R' || 
-                    valorNormalizado.includes('CLIENTE RETIRA') || valorNormalizado.includes('RETIRA CLIENTE')) {
+                
+                if (valorUpper.includes('RETIRA') || 
+                    valorUpper === 'RET' || 
+                    valorUpper === 'R' || 
+                    valorUpper.includes('CLIENTE RETIRA') || 
+                    valorUpper.includes('RETIRA CLIENTE') ||
+                    valorUpper.includes('CLIENTE') ||
+                    valorUpper === 'RET.' ||
+                    valorUpper === 'RETIRA CLIENTE') {
                     return 'Retira';
                 }
                 
-                // Se não for nenhum dos padrões, retornar o valor original
-                return valor;
+                // Se não for nenhum dos padrões, retornar o valor original capitalizado
+                return valor.charAt(0).toUpperCase() + valor.slice(1).toLowerCase();
             }
 
             static parseDateTimeFromGoogleSheets(dateTimeStr) {
@@ -3138,11 +3184,19 @@
                 console.log('=== PROCESSANDO DADOS DE EXPEDIÇÃO ===');
                 console.log('Total de registros:', dados.length);
                 
-                return dados.map((item) => {
+                // DEBUG: Mostrar todas as chaves do primeiro item
+                if (dados.length > 0) {
+                    console.log('Chaves disponíveis no primeiro item:', Object.keys(dados[0]));
+                }
+                
+                return dados.map((item, index) => {
                     let filialItem = item.FILIAL || '';
                     if (!filialItem && filialNome) {
                         filialItem = filialNome;
                     }
+                    
+                    // DEBUG: Buscar tipo de carregamento específico
+                    const tipoCarregamento = Utils.buscarTipoCarregamento(item);
                     
                     // Buscar os valores com os novos nomes das colunas
                     const dataEmpenho = Utils.buscarValorPorChaves(item, [
@@ -3192,9 +3246,6 @@
                         'HORA PROGRAMADA',
                         'HORARIO PROGRAMADO'
                     ]);
-                    
-                    // CORREÇÃO APLICADA: Tipo de Carregamento usando a nova função
-                    const tipoCarregamento = Utils.buscarTipoCarregamento(item);
                     
                     // Corrigir o parsing de paletes
                     const paletesStr = Utils.buscarValorPorChaves(item, [
@@ -3272,8 +3323,9 @@
                         PALETES: paletes,
                         PALETES_FORMATADO: Utils.formatarNumero(paletes, 2),
                         
-                        // CORREÇÃO APLICADA: Tipo de Carregamento
+                        // TIPO DE CARREGAMENTO - CORRIGIDO
                         TIPO_CARREGAMENTO: tipoCarregamento,
+                        TIPO_CARREGAMENTO_ORIGINAL: item['TIPO DE CARREGAMENTO'] || '', // Para debug
                         
                         // Datas formatadas
                         DATA_EMPENHO_FORMATADA: Utils.formatarDataSimples(dataEmpenho),
@@ -3380,7 +3432,13 @@
                     return hasData && hasData.toString().trim() !== '';
                 });
                 
-                return dadosFiltrados.map(item => {
+                // DEBUG: Mostrar chaves disponíveis
+                if (dadosFiltrados.length > 0) {
+                    console.log('=== DADOS EM ANDAMENTO ===');
+                    console.log('Chaves disponíveis:', Object.keys(dadosFiltrados[0]));
+                }
+                
+                return dadosFiltrados.map((item, index) => {
                     let filialItem = item.FILIAL || '';
                     if (!filialItem && filialNome) {
                         filialItem = filialNome;
@@ -3395,6 +3453,9 @@
                     ]);
                     
                     const paletes = Utils.parsePaletes(paletesStr);
+                    
+                    // CORREÇÃO APLICADA: Tipo de Carregamento usando a nova função
+                    const tipoCarregamento = Utils.buscarTipoCarregamento(item);
                     
                     // Buscar datas de separação com nomes corrigidos
                     const separacaoInicio = Utils.buscarValorPorChaves(item, [
@@ -3416,9 +3477,6 @@
                         'DATA SEPARAÇÃO FIM',
                         'DATA E HORA SEPARACAO FINAL'
                     ]);
-                    
-                    // CORREÇÃO APLICADA: Tipo de Carregamento usando a nova função
-                    const tipoCarregamento = Utils.buscarTipoCarregamento(item);
                     
                     // LÓGICA MELHORADA PARA STATUS DE SEPARAÇÃO
                     let statusSeparacao = 'Falta Separação';
@@ -3466,6 +3524,7 @@
                         TRANSPORTADORA: item.TRANSPORTADORA || '',
                         // CORREÇÃO APLICADA
                         TIPO_CARREGAMENTO: tipoCarregamento,
+                        TIPO_CARREGAMENTO_ORIGINAL: item['TIPO DE CARREGAMENTO'] || '', // Para debug
                         SEPARACAO_INICIO: separacaoInicio,
                         SEPARACAO_FINAL: separacaoFinal,
                         ESTA_EM_SEPARACAO: estaEmSeparacao,
@@ -3642,7 +3701,7 @@
 
         const tableManager = new TableManager();
 
-        // Filter Manager
+        // Filter Manager - CORRIGIDO
         class FilterManager {
             constructor() {
                 this.initElements();
@@ -3664,7 +3723,7 @@
                     statusErroExpedicao: document.getElementById('statusErroExpedicao'),
                     tipoErroExpedicao: document.getElementById('tipoErroExpedicao'),
                     statusAtrasoExpedicao: document.getElementById('statusAtrasoExpedicao'),
-                    // NOVO FILTRO: Tipo de Carregamento
+                    // NOVO FILTRO: Tipo de Carregamento - CORRIGIDO
                     tipoCarregamentoExpedicao: document.getElementById('tipoCarregamentoExpedicao'),
                     // Avançados
                     paletesMin: document.getElementById('paletesMin'),
@@ -3695,7 +3754,7 @@
                     ufAndamento: document.getElementById('ufAndamento'),
                     cidadeAndamento: document.getElementById('cidadeAndamento'),
                     statusSeparacao: document.getElementById('statusSeparacao'),
-                    // NOVO FILTRO: Tipo de Carregamento (Em Andamento)
+                    // NOVO FILTRO: Tipo de Carregamento (Em Andamento) - CORRIGIDO
                     tipoCarregamentoAndamento: document.getElementById('tipoCarregamentoAndamento')
                 };
 
@@ -3808,6 +3867,108 @@
                 }
             }
 
+            // CORREÇÃO APLICADA: Preencher tipos de carregamento
+            preencherTiposCarregamento(dados, selectId) {
+                const tipos = new Set();
+                
+                // Coletar todos os tipos de carregamento únicos
+                dados.forEach(item => {
+                    const tipo = item.TIPO_CARREGAMENTO || '';
+                    if (tipo && tipo.trim() !== '') {
+                        // Usar o tipo já normalizado
+                        const tipoNormalizado = tipo.toString().trim();
+                        tipos.add(tipoNormalizado);
+                    }
+                });
+                
+                const select = document.getElementById(selectId);
+                if (!select) return;
+                
+                const currentValue = select.value;
+                select.innerHTML = '<option value="">Todos</option>';
+                
+                // Adicionar opções fixas primeiro
+                const opcoesFixas = ['Fracionado', 'Dedicado', 'Retira'];
+                
+                opcoesFixas.forEach(tipo => {
+                    const option = document.createElement('option');
+                    option.value = tipo;
+                    option.textContent = tipo;
+                    select.appendChild(option);
+                });
+                
+                // Adicionar opção para registros sem tipo
+                select.appendChild(document.createElement('option'));
+                
+                // Depois adicionar outros tipos encontrados
+                const outrosTipos = Array.from(tipos).filter(tipo => 
+                    !opcoesFixas.some(fixo => 
+                        tipo.toLowerCase().includes(fixo.toLowerCase()) || 
+                        fixo.toLowerCase().includes(tipo.toLowerCase())
+                    )
+                );
+                
+                outrosTipos.sort().forEach(tipo => {
+                    const option = document.createElement('option');
+                    option.value = tipo;
+                    option.textContent = tipo;
+                    select.appendChild(option);
+                });
+                
+                // Adicionar opção "Sem Dados" (valor vazio)
+                const optionSemDados = document.createElement('option');
+                optionSemDados.value = '';
+                optionSemDados.textContent = 'Sem Dados';
+                select.appendChild(optionSemDados);
+                
+                if (currentValue) {
+                    select.value = currentValue;
+                }
+            }
+
+            // CORREÇÃO APLICADA: Filtro de tipo de carregamento
+            aplicarFiltroTipoCarregamento(item, filtroValue, campoTipo) {
+                if (!filtroValue) return true;
+                
+                const tipoItem = (item[campoTipo] || '').toString().trim();
+                
+                // Para filtrar por "Sem Dados" (valor vazio)
+                if (filtroValue === '') {
+                    return tipoItem === '';
+                }
+                
+                // Para os outros tipos, comparação insensível a maiúsculas/minúsculas
+                if (tipoItem === '') return false;
+                
+                // Normalizar ambos para comparação
+                const tipoItemUpper = tipoItem.toUpperCase();
+                const filtroUpper = filtroValue.toUpperCase();
+                
+                // Verificar se o tipo do item contém o valor do filtro ou vice-versa
+                if (tipoItemUpper.includes(filtroUpper) || 
+                    filtroUpper.includes(tipoItemUpper) ||
+                    tipoItemUpper === filtroUpper) {
+                    return true;
+                }
+                
+                // Verificar correspondências parciais
+                const mapeamentos = {
+                    'FRACIONADO': ['FRAC', 'FRACIONADA', 'FRACION'],
+                    'DEDICADO': ['DED', 'DEDICADA'],
+                    'RETIRA': ['RET', 'CLIENTE RETIRA', 'RETIRA CLIENTE']
+                };
+                
+                for (const [tipoPrincipal, variacoes] of Object.entries(mapeamentos)) {
+                    if (tipoPrincipal === filtroUpper || variacoes.includes(filtroUpper)) {
+                        if (tipoItemUpper === tipoPrincipal || variacoes.some(v => tipoItemUpper.includes(v))) {
+                            return true;
+                        }
+                    }
+                }
+                
+                return false;
+            }
+
             aplicarFiltrosExpedicao(dados) {
                 if (!dados) return [];
                 
@@ -3910,30 +4071,13 @@
                         }
                     }
                     
-                    // 9. Filtro por tipo de carregamento - NOVO FILTRO
-                    if (this.elements.tipoCarregamentoExpedicao && this.elements.tipoCarregamentoExpedicao.value) {
-                        const tipoFiltro = this.elements.tipoCarregamentoExpedicao.value;
-                        const tipoItem = (item.TIPO_CARREGAMENTO || '').toString().trim();
-    
-                            // Para filtrar por "Sem Dados"
-                    if (tipoFiltro === 'Sem Dados') {
-                        if (tipoItem !== '') {
-                         return false;
-                        }
-                    } 
-                    // Para os outros tipos (Fracionado, Dedicado, Retira)
-                    else {
-                        // Se o item não tem tipo de carregamento, não deve aparecer
-                        if (tipoItem === '') {
-                            return false;
-                        }
-                        
-                        // Comparação insensível a maiúsculas/minúsculas
-                        if (tipoItem.toUpperCase() !== tipoFiltro.toUpperCase()) {
+                    // 9. Filtro por tipo de carregamento - CORREÇÃO APLICADA
+                    if (this.elements.tipoCarregamentoExpedicao && this.elements.tipoCarregamentoExpedicao.value !== undefined) {
+                        const filtroValue = this.elements.tipoCarregamentoExpedicao.value;
+                        if (!this.aplicarFiltroTipoCarregamento(item, filtroValue, 'TIPO_CARREGAMENTO')) {
                             return false;
                         }
                     }
-                }
                     
                     // Filtros avançados
                     if (this.elements.paletesMin.value && item.PALETES < parseFloat(this.elements.paletesMin.value)) {
@@ -4146,16 +4290,10 @@
                         }
                     }
                     
-                    // Filtro por tipo de carregamento (Em Andamento)
-                    if (this.elements.tipoCarregamentoAndamento && this.elements.tipoCarregamentoAndamento.value) {
-                        const tipoFiltro = this.elements.tipoCarregamentoAndamento.value;
-                        const tipoItem = item.TIPO_CARREGAMENTO || '';
-                        
-                        if (tipoFiltro === 'Sem Dados') {
-                            if (tipoItem && tipoItem.trim() !== '') {
-                                return false;
-                            }
-                        } else if (tipoItem !== tipoFiltro) {
+                    // Filtro por tipo de carregamento (Em Andamento) - CORREÇÃO APLICADA
+                    if (this.elements.tipoCarregamentoAndamento && this.elements.tipoCarregamentoAndamento.value !== undefined) {
+                        const filtroValue = this.elements.tipoCarregamentoAndamento.value;
+                        if (!this.aplicarFiltroTipoCarregamento(item, filtroValue, 'TIPO_CARREGAMENTO')) {
                             return false;
                         }
                     }
@@ -4177,6 +4315,10 @@
                 
                 this.preencherArmazens(dadosRecebimento, 'armazemRecebimento');
                 this.preencherTiposErro(dadosExpedicao, 'tipoErroExpedicao');
+                
+                // ADICIONADO: Preencher tipos de carregamento - CORREÇÃO APLICADA
+                this.preencherTiposCarregamento(dadosExpedicao, 'tipoCarregamentoExpedicao');
+                this.preencherTiposCarregamento(dadosEmAndamento, 'tipoCarregamentoAndamento');
             }
 
             preencherTransportadoras(dados, selectId) {
@@ -4661,6 +4803,8 @@
             }
         }
 
+        const pagination = new PaginationManager();
+
         // Main App atualizada com sistema de cache e atualização automática
         class DashboardApp {
             constructor() {
@@ -4670,7 +4814,7 @@
                 this.autoRefreshInterval = null;
                 this.cacheUpdateInterval = null;
                 this.lastRefreshTime = null;
-                this.pagination = new PaginationManager();
+                this.pagination = pagination;
                 this.init();
             }
 
@@ -4800,6 +4944,9 @@
                     // Adicionar efeito visual no botão de refresh
                     this.animarBotaoRefresh();
                     
+                    // Mostrar indicador de atualização
+                    this.mostrarIndicadorAtualizacao();
+                    
                     const [expedicao, recebimento, emandamento] = await Promise.allSettled([
                         apiService.carregarDadosExpedicao(filialId, forcarAtualizacao),
                         apiService.carregarDadosRecebimento(filialId, forcarAtualizacao),
@@ -4818,14 +4965,10 @@
                     if (expedicao.status === 'rejected') {
                         this.mostrarErroExpedicao('Erro ao carregar expedição: ' + expedicao.reason.message);
                     }
-                    if (recebimento.status === 'fulfilled' ? recebimento.value : []) {
-                        this.dados.recebimento = recebimento.value;
-                    } else if (recebimento.status === 'rejected') {
+                    if (recebimento.status === 'rejected') {
                         this.mostrarErroRecebimento('Erro ao carregar recebimento: ' + recebimento.reason.message);
                     }
-                    if (emandamento.status === 'fulfilled' ? emandamento.value : []) {
-                        this.dados.emandamento = emandamento.value;
-                    } else if (emandamento.status === 'rejected') {
+                    if (emandamento.status === 'rejected') {
                         this.mostrarErroEmAndamento('Erro ao carregar dados em andamento: ' + emandamento.reason.message);
                     }
 
@@ -4848,6 +4991,8 @@
                     this.ocultarLoading();
                     // Remover animação do botão
                     this.removerAnimacaoBotaoRefresh();
+                    // Ocultar indicador de atualização
+                    this.ocultarIndicadorAtualizacao();
                 }
             }
 
@@ -5001,11 +5146,6 @@
                 console.log('- Sem tipo:', semTipoCarregamento);
                 console.log('- Total dados:', dados.length);
                 
-                // Verificar se há dados de carregamento para debug
-                dados.slice(0, 5).forEach((item, index) => {
-                    console.log(`Item ${index + 1} - Tipo carregamento:`, item.TIPO_CARREGAMENTO);
-                });
-                
                 document.getElementById('tipoFracionado').textContent = tipoFracionado.toLocaleString('pt-BR');
                 document.getElementById('tipoDedicado').textContent = tipoDedicado.toLocaleString('pt-BR');
                 document.getElementById('tipoRetira').textContent = tipoRetira.toLocaleString('pt-BR');
@@ -5156,7 +5296,7 @@
                     this.mostrarBadgeAtualizacao();
                 }
                 
-                // Se o cache expirou, atualizar silenciosamente
+                // Si o cache expirou, atualizar silenciosamente
                 if (cacheInfo.timeUntilExpiry <= 0) {
                     console.log('Cache expirado, atualizando dados...');
                     this.atualizarDadosForcadamente();
@@ -5192,6 +5332,21 @@
                 // Remover tooltip
                 const refreshBtn = document.getElementById('refreshData');
                 refreshBtn.title = 'Atualizar dados manualmente (dados locais são usados por 30 min)';
+            }
+
+            // NOVAS FUNÇÕES: Mostrar/ocultar indicador de atualização
+            mostrarIndicadorAtualizacao() {
+                const updateIndicator = document.getElementById('updateIndicator');
+                if (updateIndicator) {
+                    updateIndicator.style.display = 'flex';
+                }
+            }
+
+            ocultarIndicadorAtualizacao() {
+                const updateIndicator = document.getElementById('updateIndicator');
+                if (updateIndicator) {
+                    updateIndicator.style.display = 'none';
+                }
             }
 
             atualizarIndicadorCache() {
@@ -5388,25 +5543,46 @@
         document.addEventListener('DOMContentLoaded', () => {
             window.dashboardApp = new DashboardApp();
             
-            // Função de teste para verificar tipos de carregamento
-            window.testarTipoCarregamento = function() {
+            // Função de debug para verificar tipos de carregamento
+            window.debugTipoCarregamentoDetalhado = function() {
                 if (dashboardApp.dados.expedicao && dashboardApp.dados.expedicao.length > 0) {
-                    console.log('=== TESTE TIPO CARREGAMENTO ===');
-                    const tipos = {};
+                    console.log('=== DEBUG DETALHADO TIPO DE CARREGAMENTO ===');
                     
-                    dashboardApp.dados.expedicao.forEach(item => {
+                    // Mostrar todos os tipos únicos encontrados
+                    const tiposUnicos = {};
+                    const tiposOriginais = {};
+                    
+                    dashboardApp.dados.expedicao.forEach((item, index) => {
                         const tipo = item.TIPO_CARREGAMENTO || 'N/A';
-                        tipos[tipo] = (tipos[tipo] || 0) + 1;
+                        const tipoOriginal = item.TIPO_CARREGAMENTO_ORIGINAL || 'N/A';
+                        
+                        tiposUnicos[tipo] = (tiposUnicos[tipo] || 0) + 1;
+                        tiposOriginais[tipoOriginal] = (tiposOriginais[tipoOriginal] || 0) + 1;
+                        
+                        // Mostrar primeiros 5 itens detalhadamente
+                        if (index < 5) {
+                            console.log(`Item ${index + 1}:`);
+                            console.log('- Tipo processado:', tipo);
+                            console.log('- Tipo original:', tipoOriginal);
+                            console.log('- Todas as chaves:', Object.keys(item));
+                            console.log('- Valor da coluna "TIPO DE CARREGAMENTO":', item['TIPO DE CARREGAMENTO']);
+                        }
                     });
                     
-                    console.log('Distribuição de tipos:', tipos);
+                    console.log('\n=== ESTATÍSTICAS ===');
+                    console.log('Tipos processados únicos:', tiposUnicos);
+                    console.log('Tipos originais únicos:', tiposOriginais);
+                    console.log('Total de registros:', dashboardApp.dados.expedicao.length);
                     
-                    // Verificar primeiros 10 itens
-                    dashboardApp.dados.expedicao.slice(0, 10).forEach((item, i) => {
-                        console.log(`Item ${i + 1}: Tipo = "${item.TIPO_CARREGAMENTO}"`);
-                    });
+                    // Verificar também os filtros
+                    console.log('\n=== FILTROS DISPONÍVEIS ===');
+                    const filtroTipo = document.getElementById('tipoCarregamentoExpedicao');
+                    if (filtroTipo) {
+                        console.log('Opções no filtro de tipo de carregamento:', 
+                            Array.from(filtroTipo.options).map(opt => opt.value));
+                    }
                 } else {
-                    console.log('Nenhum dado disponível para teste');
+                    console.log('Nenhum dado disponível para debug');
                 }
             };
         });
