@@ -3701,7 +3701,7 @@
 
         const tableManager = new TableManager();
 
-        // Filter Manager - CORRIGIDO
+        // Filter Manager - CORREÇÃO APLICADA
         class FilterManager {
             constructor() {
                 this.initElements();
@@ -3926,47 +3926,62 @@
                 }
             }
 
-            // CORREÇÃO APLICADA: Filtro de tipo de carregamento
+            // CORREÇÃO APLICADA: Filtro de tipo de carregamento - FUNÇÃO REESCRITA
             aplicarFiltroTipoCarregamento(item, filtroValue, campoTipo) {
                 if (!filtroValue) return true;
                 
                 const tipoItem = (item[campoTipo] || '').toString().trim();
                 
-                // Para filtrar por "Sem Dados" (valor vazio)
+                // Para filtrar por "Sem Dados" (valor vazio no filtro)
                 if (filtroValue === '') {
                     return tipoItem === '';
                 }
                 
-                // Para os outros tipos, comparação insensível a maiúsculas/minúsculas
-                if (tipoItem === '') return false;
-                
-                // Normalizar ambos para comparação
-                const tipoItemUpper = tipoItem.toUpperCase();
-                const filtroUpper = filtroValue.toUpperCase();
-                
-                // Verificar se o tipo do item contém o valor do filtro ou vice-versa
-                if (tipoItemUpper.includes(filtroUpper) || 
-                    filtroUpper.includes(tipoItemUpper) ||
-                    tipoItemUpper === filtroUpper) {
-                    return true;
+                // Se o item não tem tipo e o filtro não é "Sem Dados", retorna false
+                if (tipoItem === '') {
+                    return false;
                 }
                 
-                // Verificar correspondências parciais
-                const mapeamentos = {
-                    'FRACIONADO': ['FRAC', 'FRACIONADA', 'FRACION'],
-                    'DEDICADO': ['DED', 'DEDICADA'],
-                    'RETIRA': ['RET', 'CLIENTE RETIRA', 'RETIRA CLIENTE']
+                // Normalizar ambos para comparação (remover acentos, converter para maiúsculas)
+                const normalizarTexto = (texto) => {
+                    return texto
+                        .toUpperCase()
+                        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+                        .replace(/[^A-Z0-9]/g, '');
                 };
                 
+                const tipoItemNormalizado = normalizarTexto(tipoItem);
+                const filtroNormalizado = normalizarTexto(filtroValue);
+                
+                // Mapeamento de variações para cada tipo
+                const mapeamentos = {
+                    'FRACIONADO': ['FRACIONADO', 'FRAC', 'FRACIONADA', 'FRACION'],
+                    'DEDICADO': ['DEDICADO', 'DED', 'DEDICADA', 'DEDIC'],
+                    'RETIRA': ['RETIRA', 'RET', 'CLIENTE', 'CLIENTE RETIRA', 'RETIRACLIENTE']
+                };
+                
+                // Verificar se o filtro corresponde a um tipo principal
                 for (const [tipoPrincipal, variacoes] of Object.entries(mapeamentos)) {
-                    if (tipoPrincipal === filtroUpper || variacoes.includes(filtroUpper)) {
-                        if (tipoItemUpper === tipoPrincipal || variacoes.some(v => tipoItemUpper.includes(v))) {
-                            return true;
-                        }
+                    // Verificar se o filtro é uma variação deste tipo
+                    const filtroCorrespondeTipo = variacoes.some(variacao => 
+                        filtroNormalizado.includes(normalizarTexto(variacao)) ||
+                        normalizarTexto(variacao).includes(filtroNormalizado)
+                    );
+                    
+                    if (filtroCorrespondeTipo) {
+                        // Verificar se o item corresponde ao mesmo tipo
+                        const itemCorrespondeTipo = variacoes.some(variacao => 
+                            tipoItemNormalizado.includes(normalizarTexto(variacao)) ||
+                            normalizarTexto(variacao).includes(tipoItemNormalizado)
+                        );
+                        
+                        return itemCorrespondeTipo;
                     }
                 }
                 
-                return false;
+                // Se chegou aqui, fazer uma comparação direta
+                return tipoItemNormalizado.includes(filtroNormalizado) || 
+                       filtroNormalizado.includes(tipoItemNormalizado);
             }
 
             aplicarFiltrosExpedicao(dados) {
