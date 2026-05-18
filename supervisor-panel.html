@@ -6,7 +6,41 @@
 <title>Painel Supervidor — Supervisor</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+/* ── TROCAR SENHA ── */
+function openChangePwd(){
+  ['pwdAtual','pwdNova','pwdConfirm'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('pwdErr').style.display='none';
+  document.getElementById('pwdOk').style.display='none';
+  document.getElementById('mPwd').classList.add('open');
+}
+function closePwdModal(){document.getElementById('mPwd').classList.remove('open');}
+async function doChangePwd(){
+  const atual=document.getElementById('pwdAtual').value;
+  const nova=document.getElementById('pwdNova').value;
+  const conf=document.getElementById('pwdConfirm').value;
+  const errEl=document.getElementById('pwdErr');
+  const errTxt=document.getElementById('pwdErrTxt');
+  const okEl=document.getElementById('pwdOk');
+  const btn=document.getElementById('pwdBtn');
+  errEl.style.display='none'; okEl.style.display='none';
+  if(!atual){errTxt.textContent='Informe a senha atual.';errEl.style.display='flex';return;}
+  if(!nova||nova.length<6){errTxt.textContent='A nova senha deve ter pelo menos 6 caracteres.';errEl.style.display='flex';return;}
+  if(nova!==conf){errTxt.textContent='As senhas não coincidem.';errEl.style.display='flex';return;}
+  btn.disabled=true;btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Salvando...';
+  const{error:authErr}=await sb.auth.signInWithPassword({email:me.email,password:atual});
+  if(authErr){
+    errTxt.textContent='Senha atual incorreta.';errEl.style.display='flex';
+    btn.disabled=false;btn.innerHTML='<i class="fas fa-lock"></i> Alterar Senha';return;
+  }
+  const{error}=await sb.auth.updateUser({password:nova});
+  btn.disabled=false;btn.innerHTML='<i class="fas fa-lock"></i> Alterar Senha';
+  if(error){errTxt.textContent=error.message;errEl.style.display='flex';return;}
+  okEl.style.display='flex';
+  ['pwdAtual','pwdNova','pwdConfirm'].forEach(id=>document.getElementById(id).value='');
+  setTimeout(closePwdModal,1800);
+}
+</script>
 <style>
 :root{
   --blue:#2563eb;--blue-d:#1d4ed8;--blue-l:#eff6ff;--blue-b:#bfdbfe;
@@ -1174,48 +1208,82 @@ function exportCSV(tipo){
 document.addEventListener('keydown',e=>{
   if(e.key==='Escape'){['mEditE','mEditEH','mEditR','mEditRH','mFinE','mFinR','mDel'].forEach(closeMod);closePwdModal();}
 });
-
-/* ── TROCAR SENHA ── */
-function openChangePwd(){document.getElementById('mPwd').classList.add('open');document.getElementById('pwdNova').value='';document.getElementById('pwdConfirm').value='';document.getElementById('pwdErr').style.display='none';}
-function closePwdModal(){document.getElementById('mPwd').classList.remove('open');}
-async function doChangePwd(){
-  const nova=document.getElementById('pwdNova').value;
-  const conf=document.getElementById('pwdConfirm').value;
-  const errEl=document.getElementById('pwdErr');
-  const btn=document.getElementById('pwdBtn');
-  errEl.style.display='none';
-  if(!nova||nova.length<6){errEl.textContent='A senha deve ter pelo menos 6 caracteres.';errEl.style.display='block';return;}
-  if(nova!==conf){errEl.textContent='As senhas não coincidem.';errEl.style.display='block';return;}
-  btn.disabled=true;btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Salvando...';
-  const{error}=await sb.auth.updateUser({password:nova});
-  btn.disabled=false;btn.innerHTML='<i class="fas fa-save"></i> Salvar';
-  if(error){errEl.textContent=error.message;errEl.style.display='block';return;}
-  closePwdModal();toast('Senha alterada com sucesso!','ok');
-}
 document.querySelectorAll('.mbd').forEach(bd=>{
   bd.addEventListener('click',e=>{if(e.target===bd)bd.classList.remove('open')});
 });
 document.addEventListener('input',e=>{if(e.target.classList.contains('err'))e.target.classList.remove('err')});
+
+/* ── TROCAR SENHA ── */
+function openChangePwd(){
+  ['pwdAtual','pwdNova','pwdConfirm'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('pwdErr').style.display='none';
+  document.getElementById('pwdOk').style.display='none';
+  document.getElementById('mPwd').classList.add('open');
+}
+function closePwdModal(){document.getElementById('mPwd').classList.remove('open');}
+async function doChangePwd(){
+  const atual=document.getElementById('pwdAtual').value;
+  const nova=document.getElementById('pwdNova').value;
+  const conf=document.getElementById('pwdConfirm').value;
+  const errEl=document.getElementById('pwdErr');
+  const errTxt=document.getElementById('pwdErrTxt');
+  const okEl=document.getElementById('pwdOk');
+  const btn=document.getElementById('pwdBtn');
+  errEl.style.display='none'; okEl.style.display='none';
+  if(!atual){errTxt.textContent='Informe a senha atual.';errEl.style.display='flex';return;}
+  if(!nova||nova.length<6){errTxt.textContent='A nova senha deve ter pelo menos 6 caracteres.';errEl.style.display='flex';return;}
+  if(nova!==conf){errTxt.textContent='As senhas não coincidem.';errEl.style.display='flex';return;}
+  btn.disabled=true;btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Salvando...';
+  const{error:authErr}=await sb.auth.signInWithPassword({email:me.email,password:atual});
+  if(authErr){
+    errTxt.textContent='Senha atual incorreta.';errEl.style.display='flex';
+    btn.disabled=false;btn.innerHTML='<i class="fas fa-lock"></i> Alterar Senha';return;
+  }
+  const{error}=await sb.auth.updateUser({password:nova});
+  btn.disabled=false;btn.innerHTML='<i class="fas fa-lock"></i> Alterar Senha';
+  if(error){errTxt.textContent=error.message;errEl.style.display='flex';return;}
+  okEl.style.display='flex';
+  ['pwdAtual','pwdNova','pwdConfirm'].forEach(id=>document.getElementById(id).value='');
+  setTimeout(closePwdModal,1800);
+}
 </script>
 
-<!-- ── MODAL TROCAR SENHA ── -->
+<!-- MODAL TROCAR SENHA -->
 <div class="mbd" id="mPwd">
-  <div class="modal" style="max-width:360px">
-    <div class="modal-header">
-      <h3><i class="fas fa-key" style="color:var(--blue)"></i> Alterar Senha</h3>
-      <button class="modal-close" onclick="closePwdModal()"><i class="fas fa-times"></i></button>
+  <div class="modal" style="max-width:400px;border-radius:16px;overflow:hidden">
+    <div class="modal-header" style="background:linear-gradient(135deg,#1e3a8a,var(--blue));padding:20px 24px;border-bottom:none">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="width:36px;height:36px;background:rgba(255,255,255,.15);border-radius:10px;display:flex;align-items:center;justify-content:center;color:white;font-size:1rem"><i class="fas fa-lock"></i></div>
+        <div><h3 style="color:white;font-size:1rem;font-weight:700;margin:0">Alterar Senha</h3><p style="color:rgba(255,255,255,.65);font-size:.73rem;margin:2px 0 0">Atualize suas credenciais de acesso</p></div>
+      </div>
+      <button class="modal-close" onclick="closePwdModal()" style="color:rgba(255,255,255,.7);background:rgba(255,255,255,.1);border:none;width:28px;height:28px;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center"><i class="fas fa-times"></i></button>
     </div>
-    <div class="modal-body">
-      <div class="fg" style="margin-bottom:12px">
-        <label style="display:block;font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--gray-600);margin-bottom:5px">Nova Senha</label>
-        <input type="password" id="pwdNova" placeholder="Mínimo 6 caracteres" style="width:100%;padding:9px 11px;border:1.5px solid var(--gray-200);border-radius:var(--radius);font-size:.88rem;font-family:inherit">
+    <div class="modal-body" style="padding:24px;display:flex;flex-direction:column;gap:14px">
+      <div>
+        <label style="display:block;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--gray-500);margin-bottom:6px">Senha Atual</label>
+        <div style="position:relative">
+          <i class="fas fa-key" style="position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--gray-400);font-size:.8rem"></i>
+          <input type="password" id="pwdAtual" placeholder="Digite sua senha atual" style="width:100%;padding:10px 12px 10px 32px;border:1.5px solid var(--gray-200);border-radius:var(--radius);font-size:.88rem;font-family:inherit;color:var(--gray-900);transition:.15s" onfocus="this.style.borderColor='var(--blue)';this.style.boxShadow='0 0 0 3px rgba(37,99,235,.1)'" onblur="this.style.borderColor='var(--gray-200)';this.style.boxShadow='none'">
+        </div>
       </div>
-      <div class="fg" style="margin-bottom:16px">
-        <label style="display:block;font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--gray-600);margin-bottom:5px">Confirmar Senha</label>
-        <input type="password" id="pwdConfirm" placeholder="Repita a nova senha" style="width:100%;padding:9px 11px;border:1.5px solid var(--gray-200);border-radius:var(--radius);font-size:.88rem;font-family:inherit">
+      <div style="height:1px;background:var(--gray-100)"></div>
+      <div>
+        <label style="display:block;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--gray-500);margin-bottom:6px">Nova Senha</label>
+        <div style="position:relative">
+          <i class="fas fa-lock" style="position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--gray-400);font-size:.8rem"></i>
+          <input type="password" id="pwdNova" placeholder="Mínimo 6 caracteres" style="width:100%;padding:10px 12px 10px 32px;border:1.5px solid var(--gray-200);border-radius:var(--radius);font-size:.88rem;font-family:inherit;color:var(--gray-900);transition:.15s" onfocus="this.style.borderColor='var(--blue)';this.style.boxShadow='0 0 0 3px rgba(37,99,235,.1)'" onblur="this.style.borderColor='var(--gray-200)';this.style.boxShadow='none'">
+        </div>
       </div>
-      <div id="pwdErr" style="display:none;background:var(--red-l);border:1px solid #fecaca;border-left:3px solid var(--red);color:var(--red);padding:9px 12px;border-radius:var(--radius);font-size:.8rem;margin-bottom:12px"></div>
-      <button id="pwdBtn" class="btn btn-blue" style="width:100%" onclick="doChangePwd()"><i class="fas fa-save"></i> Salvar</button>
+      <div>
+        <label style="display:block;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--gray-500);margin-bottom:6px">Confirmar Nova Senha</label>
+        <div style="position:relative">
+          <i class="fas fa-lock" style="position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--gray-400);font-size:.8rem"></i>
+          <input type="password" id="pwdConfirm" placeholder="Repita a nova senha" style="width:100%;padding:10px 12px 10px 32px;border:1.5px solid var(--gray-200);border-radius:var(--radius);font-size:.88rem;font-family:inherit;color:var(--gray-900);transition:.15s" onfocus="this.style.borderColor='var(--blue)';this.style.boxShadow='0 0 0 3px rgba(37,99,235,.1)'" onblur="this.style.borderColor='var(--gray-200)';this.style.boxShadow='none'" onkeypress="if(event.key==='Enter')doChangePwd()">
+        </div>
+      </div>
+      <div id="pwdErr" style="display:none;align-items:center;gap:8px;background:var(--red-l);border:1px solid #fecaca;border-left:3px solid var(--red);color:var(--red);padding:10px 12px;border-radius:var(--radius);font-size:.8rem"><i class="fas fa-exclamation-circle"></i><span id="pwdErrTxt"></span></div>
+      <div id="pwdOk" style="display:none;align-items:center;gap:8px;background:var(--green-l);border:1px solid #bbf7d0;border-left:3px solid var(--green);color:var(--green);padding:10px 12px;border-radius:var(--radius);font-size:.8rem"><i class="fas fa-check-circle"></i> Senha alterada com sucesso!</div>
+      <button id="pwdBtn" onclick="doChangePwd()" style="width:100%;padding:11px;background:var(--blue);color:white;border:none;border-radius:var(--radius);font-size:.88rem;font-weight:600;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:.15s;margin-top:2px"><i class="fas fa-lock"></i> Alterar Senha</button>
     </div>
   </div>
 </div>
