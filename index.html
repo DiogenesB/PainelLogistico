@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simbiose Agro — Análise Logística v3</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --blue:#2563eb;--blue-d:#1d4ed8;--blue-l:#eff6ff;--blue-b:#bfdbfe;
+  --teal:#0d9488;--teal-d:#0f766e;--teal-l:#f0fdfa;
+  --green:#16a34a;--green-l:#f0fdf4;
+  --red:#dc2626;--red-l:#fef2f2;
+  --orange:#ea580c;--amber:#f59e0b;--purple:#7c3aed;
+  --gray-50:#f9fafb;--gray-100:#f3f4f6;--gray-200:#e5e7eb;--gray-300:#d1d5db;
+  --gray-400:#9ca3af;--gray-500:#6b7280;--gray-600:#4b5563;--gray-700:#374151;
+  --gray-800:#1f2937;--gray-900:#111827;
+  --white:#fff;--radius:8px;--radius-lg:12px;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html,body{font-family:'Inter',sans-serif;font-size:14px;background:var(--gray-50);color:var(--gray-900);-webkit-font-smoothing:antialiased}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-thumb{background:var(--gray-300);border-radius:99px}
+
+/* TOPBAR */
+.topbar{background:var(--white);border-bottom:1px solid var(--gray-200);padding:0 24px;position:sticky;top:0;z-index:100;box-shadow:0 1px 2px rgba(0,0,0,.05)}
+.topbar-inner{display:flex;align-items:center;justify-content:space-between;height:56px;gap:16px}
+.brand{display:flex;align-items:center;gap:10px}
+.brand-icon{width:32px;height:32px;background:var(--blue);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:.85rem}
+.brand h1{font-size:.95rem;font-weight:700;color:var(--gray-900)}
+.brand p{font-size:.68rem;color:var(--gray-400)}
+.topbar-right{display:flex;align-items:center;gap:10px}
+.refresh-indicator{display:none;align-items:center;gap:8px;padding:4px 10px;background:var(--green-l);border:1px solid #bbf7d0;border-radius:99px;font-size:.7rem;color:var(--green)}
+.refresh-indicator.visible{display:flex}
+.refresh-dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:blink 2s infinite;flex-shrink:0}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.refresh-countdown{font-weight:700;font-family:monospace;font-size:.75rem}
+.filial-pill{background:var(--blue-l);border:1px solid var(--blue-b);color:var(--blue-d);padding:4px 12px;border-radius:99px;font-size:.73rem;font-weight:600;white-space:nowrap;max-width:260px;overflow:hidden;text-overflow:ellipsis}
+.filial-select{padding:7px 28px 7px 12px;border:1.5px solid var(--gray-200);border-radius:var(--radius);font-size:.8rem;font-family:inherit;color:var(--gray-800);background:var(--white);appearance:none;cursor:pointer;min-width:230px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='11' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;background-size:11px}
+.filial-select:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+
+/* TABS */
+.tabs-nav{background:var(--white);border-bottom:1px solid var(--gray-200);padding:0 24px;display:flex;overflow-x:auto}
+.tab-btn{padding:13px 18px;border:none;background:none;font-family:inherit;font-size:.8rem;font-weight:500;color:var(--gray-500);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:.15s;display:flex;align-items:center;gap:6px;white-space:nowrap}
+.tab-btn:hover{color:var(--gray-800)}
+.tab-btn.active{color:var(--blue);border-bottom-color:var(--blue);font-weight:600}
+.tab-btn.tab-and.active{color:var(--orange);border-bottom-color:var(--orange)}
+.tab-btn.tab-and:hover{color:var(--orange)}
+.tab-btn.tab-rec.active{color:var(--teal);border-bottom-color:var(--teal)}
+.tab-btn.tab-rec:hover{color:var(--teal-d)}
+
+/* MAIN */
+.main{padding:20px 24px;max-width:1800px;margin:0 auto}
+.panel{display:none}.panel.active{display:block}
+
+/* KPIs */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:10px;margin-bottom:18px}
+.kpi-card{background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius-lg);padding:14px 16px;border-top:3px solid var(--blue);transition:.15s}
+.kpi-card:hover{box-shadow:0 4px 6px -1px rgba(0,0,0,.06);transform:translateY(-1px)}
+.kpi-card.color-teal{border-top-color:var(--teal)}.kpi-card.color-green{border-top-color:var(--green)}
+.kpi-card.color-red{border-top-color:var(--red)}.kpi-card.color-amber{border-top-color:var(--amber)}
+.kpi-card.color-orange{border-top-color:var(--orange)}.kpi-card.color-purple{border-top-color:var(--purple)}
+.kpi-icon{font-size:.78rem;color:var(--gray-400);margin-bottom:8px}
+.kpi-value{font-size:1.4rem;font-weight:700;color:var(--gray-900);line-height:1.1}
+.kpi-label{font-size:.62rem;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--gray-400);margin-top:4px}
+
+/* FILTER BAR */
+.filter-bar{background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius-lg);padding:14px 16px;margin-bottom:16px}
+.filter-row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
+.filter-group{display:flex;flex-direction:column;gap:3px;min-width:120px}
+.filter-group label{font-size:.62rem;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--gray-500)}
+.filter-group input,.filter-group select{padding:7px 10px;border:1.5px solid var(--gray-200);border-radius:var(--radius);font-size:.8rem;font-family:inherit;color:var(--gray-900);background:var(--white);transition:.15s;height:34px}
+.filter-group input:focus,.filter-group select:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,.08)}
+.filter-group.teal input:focus,.filter-group.teal select:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(13,148,136,.08)}
+.filter-group select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='11' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;background-size:11px;padding-right:24px}
+/* FIX UX: inputs desabilitados quando sem filial selecionada */
+.filter-group input:disabled,.filter-group select:disabled{opacity:.45;cursor:not-allowed;background:var(--gray-100)}
+.filter-date-range{display:flex;gap:6px}.filter-date-range input{min-width:110px}
+.filter-count{font-size:.73rem;color:var(--gray-500);align-self:flex-end;white-space:nowrap}
+.filter-count strong{color:var(--blue);font-size:.88rem}
+
+/* DATA CARD / TABLE */
+.data-card{background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius-lg);margin-bottom:16px}
+.data-card-header{padding:13px 16px;border-bottom:1px solid var(--gray-100);display:flex;align-items:center;justify-content:space-between;gap:12px}
+.data-card-header h2{font-size:.86rem;font-weight:600;color:var(--gray-800);display:flex;align-items:center;gap:7px}
+.tbl-scroll{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.data-table{width:100%;border-collapse:collapse;font-size:.73rem;min-width:1400px}
+.data-table thead th{background:var(--gray-800);color:#fff;padding:9px 8px;text-align:left;font-size:.62rem;text-transform:uppercase;letter-spacing:.4px;font-weight:600;white-space:nowrap}
+.data-table thead th.th-teal{background:var(--teal-d)}
+.data-table thead th.th-orange{background:var(--orange)}
+.data-table tbody td{padding:8px;border-bottom:1px solid var(--gray-100);color:var(--gray-700);vertical-align:middle;white-space:nowrap;max-width:200px;overflow:hidden;text-overflow:ellipsis}
+.data-table tbody tr:hover td{background:var(--gray-50)}
+.data-table tbody tr.row-atr-transp td{background:#fffbeb}
+.data-table tbody tr.row-atr-exp td{background:#fef2f2}
+.data-table tbody tr.row-erro td{background:#fef7f7}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:99px;font-size:.62rem;font-weight:600;text-transform:uppercase;letter-spacing:.3px}
+.badge-ok{background:var(--green-l);color:var(--green)}
+.badge-err{background:var(--red-l);color:var(--red)}
+.badge-pend{background:#fffbeb;color:#92400e}
+.badge-lanc{background:var(--green-l);color:var(--green)}
+.badge-atr-transp{background:#fffbeb;color:#92400e}
+.badge-atr-exp{background:var(--red-l);color:var(--red)}
+.badge-prazo{background:var(--green-l);color:var(--green)}
+.badge-sem-dados{background:var(--gray-100);color:var(--gray-500)}
+.badge-sep-ok{background:var(--green-l);color:var(--green)}
+.badge-sep-ini{background:#fffbeb;color:#92400e}
+.badge-sep-no{background:var(--gray-100);color:var(--gray-500)}
+.tooltip-trigger{cursor:help;text-decoration:underline dotted;text-underline-offset:2px}
+
+/* PAGINATION */
+.pagination-bar{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-top:1px solid var(--gray-100);flex-wrap:wrap;gap:8px}
+.pagination-info{font-size:.72rem;color:var(--gray-500)}
+.pagination-controls{display:flex;align-items:center;gap:5px}
+.page-size-select{padding:5px 8px;border:1px solid var(--gray-200);border-radius:var(--radius);font-size:.72rem;font-family:inherit;color:var(--gray-700)}
+.page-btn{width:26px;height:26px;display:flex;align-items:center;justify-content:center;border:1px solid var(--gray-200);border-radius:var(--radius);background:var(--white);color:var(--gray-500);cursor:pointer;font-size:.68rem;transition:.15s}
+.page-btn:hover{background:var(--blue);color:#fff;border-color:var(--blue)}
+.page-btn:disabled{opacity:.4;cursor:not-allowed}
+.page-btn:disabled:hover{background:var(--white);color:var(--gray-500);border-color:var(--gray-200)}
+.page-input{width:42px;padding:4px 6px;border:1px solid var(--gray-200);border-radius:var(--radius);font-size:.72rem;text-align:center;font-family:inherit}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border:none;border-radius:var(--radius);font-size:.73rem;font-weight:600;font-family:inherit;cursor:pointer;transition:.15s}
+.btn:hover{filter:brightness(.93)}
+.btn-green{background:var(--green);color:#fff}
+.btn-teal{background:var(--teal);color:#fff}
+.btn-ghost{background:var(--white);color:var(--gray-700);border:1px solid var(--gray-200)}
+.btn-ghost:hover{background:var(--gray-100)}
+
+/* LOADING */
+.loading-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;color:var(--gray-400);gap:14px;background:var(--white)}
+.spinner{width:32px;height:32px;border:2.5px solid var(--gray-200);border-top-color:var(--blue);border-radius:50%;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-state span{font-size:.8rem}
+
+/* TOAST */
+#toast-container{position:fixed;top:16px;right:16px;z-index:9999;display:flex;flex-direction:column;gap:6px;pointer-events:none}
+.toast{padding:10px 14px;border-radius:var(--radius);box-shadow:0 4px 6px rgba(0,0,0,.08);display:flex;align-items:center;gap:8px;font-size:.78rem;font-weight:500;animation:toastIn .25s ease both;pointer-events:all;max-width:320px}
+@keyframes toastIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.toast-ok{background:var(--green-l);border:1px solid #bbf7d0;color:var(--green);border-left:3px solid var(--green)}
+.toast-err{background:var(--red-l);border:1px solid #fecaca;color:var(--red);border-left:3px solid var(--red)}
+
+@media(max-width:768px){.main{padding:12px}.filter-row{flex-direction:column}.filter-group{width:100%}.kpi-grid{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<div id="toast-container"></div>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <div class="brand-icon"><i class="fas fa-shipping-fast"></i></div>
+      <div><h1>Simbiose Agro</h1><p>Análise Logística</p></div>
+    </div>
+    <div class="topbar-right">
+      <div class="refresh-indicator" id="refresh-indicator">
+        <div class="refresh-dot"></div>
+        <span style="color:var(--gray-500);font-size:.68rem">Próx. atualização</span>
+        <span class="refresh-countdown" id="refresh-countdown">60:00</span>
+      </div>
+      <span class="filial-pill" id="filial-pill" style="display:none"></span>
+      <select class="filial-select" id="filial-select"><option value="">Selecione uma filial</option></select>
+    </div>
+  </div>
+</header>
+
+<div class="tabs-nav">
+  <button class="tab-btn active"  id="tab-btn-exp" onclick="App.switchTab('exp')"><i class="fas fa-shipping-fast"></i> Expedição Histórico</button>
+  <button class="tab-btn tab-and" id="tab-btn-and" onclick="App.switchTab('and')"><i class="fas fa-clock"></i> Expedição em Andamento</button>
+  <button class="tab-btn tab-rec" id="tab-btn-rec" onclick="App.switchTab('rec')"><i class="fas fa-dolly"></i> Recebimento</button>
+</div>
+
+<div class="main">
+
+<!-- EXPEDIÇÃO HISTÓRICO -->
+<div class="panel active" id="panel-exp">
+  <div class="kpi-grid">
+    <div class="kpi-card"             ><div class="kpi-icon"><i class="fas fa-boxes"></i></div>                <div class="kpi-value" id="kpi-exp-total">—</div><div class="kpi-label">Total Pedidos</div></div>
+    <div class="kpi-card color-red"   ><div class="kpi-icon"><i class="fas fa-exclamation-triangle"></i></div> <div class="kpi-value" id="kpi-exp-errtaxa">—</div><div class="kpi-label">Taxa de Erro</div></div>
+    <div class="kpi-card color-green" ><div class="kpi-icon"><i class="fas fa-star"></i></div>                  <div class="kpi-value" id="kpi-exp-efi">—</div><div class="kpi-label">Taxa de Eficiência</div></div>
+    <div class="kpi-card color-teal"  ><div class="kpi-icon"><i class="fas fa-clock"></i></div>                <div class="kpi-value" id="kpi-exp-sep">—</div><div class="kpi-label">Méd. Separação</div></div>
+    <div class="kpi-card color-teal"  ><div class="kpi-icon"><i class="fas fa-truck-loading"></i></div>        <div class="kpi-value" id="kpi-exp-carr">—</div><div class="kpi-label">Méd. Carregamento</div></div>
+    <div class="kpi-card"             ><div class="kpi-icon"><i class="fas fa-hourglass-half"></i></div>        <div class="kpi-value" id="kpi-exp-lead">—</div><div class="kpi-label">Lead Time Médio</div></div>
+    <div class="kpi-card color-amber" ><div class="kpi-icon"><i class="fas fa-pallet"></i></div>               <div class="kpi-value" id="kpi-exp-pal">—</div><div class="kpi-label">Total Paletes</div></div>
+    <div class="kpi-card color-orange"><div class="kpi-icon"><i class="fas fa-truck"></i></div>                <div class="kpi-value" id="kpi-exp-atrtransp">—</div><div class="kpi-label">Atraso Transp.</div></div>
+    <div class="kpi-card color-red"   ><div class="kpi-icon"><i class="fas fa-warehouse"></i></div>            <div class="kpi-value" id="kpi-exp-atrexp">—</div><div class="kpi-label">Atraso Expediç.</div></div>
+    <div class="kpi-card"             ><div class="kpi-icon"><i class="fas fa-box-open"></i></div>              <div class="kpi-value" id="kpi-exp-frac">—</div><div class="kpi-label">Fracionado</div></div>
+    <div class="kpi-card color-green" ><div class="kpi-icon"><i class="fas fa-truck"></i></div>                <div class="kpi-value" id="kpi-exp-ded">—</div><div class="kpi-label">Dedicado</div></div>
+    <div class="kpi-card color-amber" ><div class="kpi-icon"><i class="fas fa-hand-paper"></i></div>           <div class="kpi-value" id="kpi-exp-ret">—</div><div class="kpi-label">Retira</div></div>
+  </div>
+  <div class="filter-bar"><div class="filter-row">
+    <div class="filter-group"><label>Pedido</label><input type="text" id="filt-exp-pedido" placeholder="Ex: 12345" disabled></div>
+    <div class="filter-group"><label>Cliente</label><input type="text" id="filt-exp-cliente" placeholder="Nome" disabled></div>
+    <div class="filter-group"><label>Transportadora</label><select id="filt-exp-transp" disabled><option value="">Todas</option></select></div>
+    <div class="filter-group"><label>UF</label><select id="filt-exp-uf" disabled><option value="">Todas</option></select></div>
+    <div class="filter-group"><label>Tipo</label><select id="filt-exp-tipo" disabled><option value="">Todos</option><option>Fracionado</option><option>Dedicado</option><option>Retira</option></select></div>
+    <div class="filter-group"><label>Atraso</label><select id="filt-exp-atraso" disabled><option value="">Todos</option><option value="ATRASO TRANSPORTADORA">Atraso Transp.</option><option value="ATRASO EXPEDIÇÃO">Atraso Expediç.</option><option value="NO PRAZO">No Prazo</option><option value="SEM DADOS">Sem Dados</option></select></div>
+    <div class="filter-group"><label>Erro</label><select id="filt-exp-erro" disabled><option value="">Todos</option><option value="s">Com Erro</option><option value="n">Sem Erro</option></select></div>
+    <div class="filter-group"><label>Carregamento (de – até)</label><div class="filter-date-range"><input type="date" id="filt-exp-de" disabled><input type="date" id="filt-exp-ate" disabled></div></div>
+    <div class="filter-count" id="count-exp"></div>
+    <div style="align-self:flex-end;display:flex;gap:6px">
+      <button class="btn btn-ghost" onclick="App.resetFilters('exp')"><i class="fas fa-undo"></i> Limpar</button>
+      <button class="btn btn-green" onclick="App.exportCSV('exp')"><i class="fas fa-file-csv"></i> CSV</button>
+    </div>
+  </div></div>
+  <div class="data-card">
+    <div class="data-card-header"><h2><i class="fas fa-table" style="color:var(--blue)"></i> Dados de Expedição</h2></div>
+    <div class="loading-state" id="loading-exp"><div class="spinner"></div><span>Selecione uma filial</span></div>
+    <div id="table-wrap-exp">
+      <div class="tbl-scroll">
+        <table class="data-table">
+          <thead><tr>
+            <th>Filial</th><th>Pedido</th><th>Cliente</th><th>Cidade</th><th>UF</th>
+            <th>Paletes</th><th>NF</th><th>Transportadora</th><th>Tipo</th><th>H.Prog</th>
+            <th>Empenho</th><th>Sep.Início</th><th>Sep.Fim</th><th>OC Enviada</th>
+            <th>Chegada T.</th><th>Carregamento</th><th>T.Sep</th><th>T.Carr</th>
+            <th>Lead Time</th><th>Status Atraso</th><th>Erro</th><th>Tipo Erro</th>
+          </tr></thead>
+          <tbody id="tbody-exp"></tbody>
+        </table>
+      </div>
+      <div class="pagination-bar">
+        <div class="pagination-info">Mostrando <span id="page-exp-start">0</span>–<span id="page-exp-end">0</span> de <span id="page-exp-total">0</span></div>
+        <div class="pagination-controls">
+          <select class="page-size-select" onchange="Paginators.exp.setPageSize(+this.value)"><option value="25" selected>25</option><option value="50">50</option><option value="100">100</option><option value="200">200</option></select>
+          <button class="page-btn" onclick="Paginators.exp.go('first')"><i class="fas fa-angle-double-left"></i></button>
+          <button class="page-btn" onclick="Paginators.exp.go('prev')"><i class="fas fa-angle-left"></i></button>
+          <input class="page-input" type="number" id="page-exp-input" value="1" min="1" onchange="Paginators.exp.goTo(+this.value)">
+          <span style="font-size:.72rem;color:var(--gray-500)">/ <span id="page-exp-total-pages">1</span></span>
+          <button class="page-btn" onclick="Paginators.exp.go('next')"><i class="fas fa-angle-right"></i></button>
+          <button class="page-btn" onclick="Paginators.exp.go('last')"><i class="fas fa-angle-double-right"></i></button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- EXPEDIÇÃO EM ANDAMENTO -->
+<div class="panel" id="panel-and">
+  <div class="kpi-grid">
+    <div class="kpi-card color-orange"><div class="kpi-icon"><i class="fas fa-clock"></i></div>         <div class="kpi-value" id="kpi-and-total">—</div><div class="kpi-label">Em Andamento</div></div>
+    <div class="kpi-card"             ><div class="kpi-icon"><i class="fas fa-pallet"></i></div>         <div class="kpi-value" id="kpi-and-pal">—</div><div class="kpi-label">Paletes</div></div>
+    <div class="kpi-card color-amber" ><div class="kpi-icon"><i class="fas fa-hourglass-half"></i></div><div class="kpi-value" id="kpi-and-sep">—</div><div class="kpi-label">Em Separação</div></div>
+    <div class="kpi-card color-green" ><div class="kpi-icon"><i class="fas fa-check-circle"></i></div>  <div class="kpi-value" id="kpi-and-ok">—</div><div class="kpi-label">Sep. Concluída</div></div>
+    <div class="kpi-card color-red"   ><div class="kpi-icon"><i class="fas fa-times-circle"></i></div>  <div class="kpi-value" id="kpi-and-falta">—</div><div class="kpi-label">Falta Separar</div></div>
+  </div>
+  <div class="filter-bar"><div class="filter-row">
+    <div class="filter-group"><label>Pedido</label><input type="text" id="filt-and-pedido" placeholder="Ex: 12345" disabled></div>
+    <div class="filter-group"><label>Cliente</label><input type="text" id="filt-and-cliente" placeholder="Nome" disabled></div>
+    <div class="filter-group"><label>Transportadora</label><select id="filt-and-transp" disabled><option value="">Todas</option></select></div>
+    <div class="filter-group"><label>Tipo</label><select id="filt-and-tipo" disabled><option value="">Todos</option><option>Fracionado</option><option>Dedicado</option><option>Retira</option></select></div>
+    <div class="filter-group"><label>Sep. Status</label><select id="filt-and-sep" disabled><option value="">Todos</option><option value="ok">Concluída</option><option value="ini">Em Andamento</option><option value="no">Falta Iniciar</option></select></div>
+    <div class="filter-count" id="count-and"></div>
+    <div style="align-self:flex-end;display:flex;gap:6px">
+      <button class="btn btn-ghost" onclick="App.resetFilters('and')"><i class="fas fa-undo"></i> Limpar</button>
+      <button class="btn btn-green" onclick="App.exportCSV('and')"><i class="fas fa-file-csv"></i> CSV</button>
+    </div>
+  </div></div>
+  <div class="data-card">
+    <div class="data-card-header"><h2><i class="fas fa-clock" style="color:var(--orange)"></i> Pedidos em Andamento</h2><span style="font-size:.72rem;color:var(--gray-400)">Dados em tempo real</span></div>
+    <div class="loading-state" id="loading-and"><div class="spinner"></div><span>Selecione uma filial</span></div>
+    <div id="table-wrap-and">
+      <div class="tbl-scroll">
+        <table class="data-table">
+          <thead><tr>
+            <th class="th-orange">Filial</th><th class="th-orange">Pedido</th><th class="th-orange">Cliente</th><th class="th-orange">Cidade</th><th class="th-orange">UF</th>
+            <th class="th-orange">Paletes</th><th class="th-orange">NF</th><th class="th-orange">Transportadora</th><th class="th-orange">Tipo</th><th class="th-orange">H.Prog</th>
+            <th class="th-orange">Empenho</th><th class="th-orange">Sep.Início</th><th class="th-orange">Sep.Fim</th><th class="th-orange">OC Enviada</th>
+            <th class="th-orange">Chegada T.</th><th class="th-orange">Carregamento</th><th class="th-orange">Sep.Status</th><th class="th-orange">Erro</th>
+          </tr></thead>
+          <tbody id="tbody-and"></tbody>
+        </table>
+      </div>
+      <div class="pagination-bar">
+        <div class="pagination-info">Mostrando <span id="page-and-start">0</span>–<span id="page-and-end">0</span> de <span id="page-and-total">0</span></div>
+        <div class="pagination-controls">
+          <select class="page-size-select" onchange="Paginators.and.setPageSize(+this.value)"><option value="25" selected>25</option><option value="50">50</option><option value="100">100</option></select>
+          <button class="page-btn" onclick="Paginators.and.go('first')"><i class="fas fa-angle-double-left"></i></button>
+          <button class="page-btn" onclick="Paginators.and.go('prev')"><i class="fas fa-angle-left"></i></button>
+          <input class="page-input" type="number" id="page-and-input" value="1" min="1" onchange="Paginators.and.goTo(+this.value)">
+          <span style="font-size:.72rem;color:var(--gray-500)">/ <span id="page-and-total-pages">1</span></span>
+          <button class="page-btn" onclick="Paginators.and.go('next')"><i class="fas fa-angle-right"></i></button>
+          <button class="page-btn" onclick="Paginators.and.go('last')"><i class="fas fa-angle-double-right"></i></button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- RECEBIMENTO -->
+<div class="panel" id="panel-rec">
+  <div class="kpi-grid">
+    <div class="kpi-card color-teal" ><div class="kpi-icon"><i class="fas fa-file-invoice"></i></div>     <div class="kpi-value" id="kpi-rec-total">—</div><div class="kpi-label">Total Notas</div></div>
+    <div class="kpi-card color-green"><div class="kpi-icon"><i class="fas fa-check-circle"></i></div>    <div class="kpi-value" id="kpi-rec-lanc">—</div><div class="kpi-label">Lançadas</div></div>
+    <div class="kpi-card color-amber"><div class="kpi-icon"><i class="fas fa-clock"></i></div>            <div class="kpi-value" id="kpi-rec-pend">—</div><div class="kpi-label">Pendentes</div></div>
+    <div class="kpi-card color-red"  ><div class="kpi-icon"><i class="fas fa-exclamation-circle"></i></div><div class="kpi-value" id="kpi-rec-errtaxa">—</div><div class="kpi-label">Taxa de Erro</div></div>
+  </div>
+  <div class="filter-bar"><div class="filter-row">
+    <div class="filter-group teal"><label>NF</label><input type="text" id="filt-rec-nf" placeholder="Número NF" disabled></div>
+    <div class="filter-group teal"><label>Cliente / Filial</label><input type="text" id="filt-rec-cliente" placeholder="Nome" disabled></div>
+    <div class="filter-group teal"><label>Transportadora</label><select id="filt-rec-transp" disabled><option value="">Todas</option></select></div>
+    <div class="filter-group teal"><label>Armazém</label><select id="filt-rec-armazem" disabled><option value="">Todos</option></select></div>
+    <div class="filter-group teal"><label>Lançamento</label><select id="filt-rec-lanc" disabled><option value="">Todos</option><option value="l">Lançados</option><option value="p">Pendentes</option></select></div>
+    <div class="filter-group teal"><label>Erro</label><select id="filt-rec-erro" disabled><option value="">Todos</option><option value="s">Com Erro</option><option value="n">Sem Erro</option></select></div>
+    <div class="filter-group teal"><label>Recebimento (de – até)</label><div class="filter-date-range"><input type="date" id="filt-rec-de" disabled><input type="date" id="filt-rec-ate" disabled></div></div>
+    <div class="filter-count" id="count-rec"></div>
+    <div style="align-self:flex-end;display:flex;gap:6px">
+      <button class="btn btn-ghost" onclick="App.resetFilters('rec')"><i class="fas fa-undo"></i> Limpar</button>
+      <button class="btn btn-teal" onclick="App.exportCSV('rec')"><i class="fas fa-file-csv"></i> CSV</button>
+    </div>
+  </div></div>
+  <div class="data-card">
+    <div class="data-card-header"><h2><i class="fas fa-table" style="color:var(--teal)"></i> Dados de Recebimento</h2></div>
+    <div class="loading-state" id="loading-rec"><div class="spinner"></div><span>Selecione uma filial</span></div>
+    <div id="table-wrap-rec">
+      <div class="tbl-scroll">
+        <table class="data-table">
+          <thead><tr>
+            <th class="th-teal">Filial</th><th class="th-teal">NF</th><th class="th-teal">Cliente/Filial</th>
+            <th class="th-teal">Transportadora</th><th class="th-teal">Data Receb.</th><th class="th-teal">Data Lançamento</th>
+            <th class="th-teal">Armazém</th><th class="th-teal">Observação</th><th class="th-teal">Status</th>
+            <th class="th-teal">Erro</th><th class="th-teal">Qual Erro</th>
+          </tr></thead>
+          <tbody id="tbody-rec"></tbody>
+        </table>
+      </div>
+      <div class="pagination-bar">
+        <div class="pagination-info">Mostrando <span id="page-rec-start">0</span>–<span id="page-rec-end">0</span> de <span id="page-rec-total">0</span></div>
+        <div class="pagination-controls">
+          <select class="page-size-select" onchange="Paginators.rec.setPageSize(+this.value)"><option value="25" selected>25</option><option value="50">50</option><option value="100">100</option><option value="200">200</option></select>
+          <button class="page-btn" onclick="Paginators.rec.go('first')"><i class="fas fa-angle-double-left"></i></button>
+          <button class="page-btn" onclick="Paginators.rec.go('prev')"><i class="fas fa-angle-left"></i></button>
+          <input class="page-input" type="number" id="page-rec-input" value="1" min="1" onchange="Paginators.rec.goTo(+this.value)">
+          <span style="font-size:.72rem;color:var(--gray-500)">/ <span id="page-rec-total-pages">1</span></span>
+          <button class="page-btn" onclick="Paginators.rec.go('next')"><i class="fas fa-angle-right"></i></button>
+          <button class="page-btn" onclick="Paginators.rec.go('last')"><i class="fas fa-angle-double-right"></i></button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /main -->
+<script>
+/* ============================================================
+   CONFIG
+============================================================ */
+const SUPABASE_URL  = 'https://vylffnxkpucsbzkrqxsf.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ5bGZmbnhrcHVjc2J6a3JxeHNmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyOTY3NDgsImV4cCI6MjA5Mjg3Mjc0OH0.TNj17jr6Es43aueOIGZgLNci6emEY_gP75xE1mBdEuI';
+const TABLE_EXP_HIST = 'expedicao_historico';
+const TABLE_EXP_AND  = 'expedicao_andamento';
+const TABLE_REC_HIST = 'recebimento_historico';
+const FILIAIS = ['AP. DE GOIANIA - MOVIX','PARAGOMINAS - DEMETER','RIO VERDE - MILIUM','SIMBIOSE BALSAS','SIMBIOSE LUIZ EDUARDO MAGALHÃES','SIMBIOSE UBERLANDIA','VARGINHA - FOCAL','RIO VERDE - BIOGRASS','CAMPO MOURÃO - LINEUS','SIMBIOSE CANARANA','SIMBIOSE DOURADOS','SIMBIOSE LUCAS RIO VERDE','SIMBIOSE PORTO NACIONAL','SIMBIOSE RIBEIRÃO PRETO','SIMBIOSE VILHENA','SINOP - HARMONICA'];
+const AUTO_REFRESH_MS = 3600000;
+
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
+
+/* ============================================================
+   STATE
+============================================================ */
+const State = {
+  activeTab: 'exp',
+  currentFilial: null,
+  rawExp: [], rawAnd: [], rawRec: [],
+  filtExp: [], filtAnd: [], filtRec: [],
+};
+
+/* ============================================================
+   UTILS — funções puras sem side-effects
+============================================================ */
+const Utils = {
+  /* FIX CRÍTICO: colchete corrigido para parêntese em \d{2} */
+  formatDatetime(s) {
+    if (!s) return '—';
+    const mDT = String(s).match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
+    if (mDT) return `${mDT[3]}/${mDT[2]}/${mDT[1]} ${mDT[4]}:${mDT[5]}`;
+    const mD = String(s).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (mD) return `${mD[3]}/${mD[2]}/${mD[1]}`;
+    return String(s);
+  },
+
+  formatHoursMinutes(h) {
+    if (!h || h <= 0) return '0h 00min';
+    if (h >= 24) {
+      const d = Math.floor(h / 24), hr = Math.floor(h % 24), mn = Math.round((h % 1) * 60);
+      return `${d}d ${hr}h ${Utils.pad(mn)}min`;
+    }
+    const hr = Math.floor(h), mn = Math.round((h - hr) * 60);
+    return `${hr}h ${Utils.pad(mn)}min`;
+  },
+
+  formatNumber(n, dec = 2) {
+    return (parseFloat(n) || 0).toLocaleString('pt-BR', { minimumFractionDigits: dec, maximumFractionDigits: dec });
+  },
+
+  pad(n) { return String(n).padStart(2, '0'); },
+
+  setText(id, val) { const el = document.getElementById(id); if (el) el.textContent = val; },
+
+  diffHours(a, b) {
+    if (!a || !b) return 0;
+    const pa = new Date(a), pb = new Date(b);
+    if (isNaN(pa) || isNaN(pb)) return 0;
+    const d = pb - pa;
+    return d < 0 ? 0 : Math.round((d / 3600000) * 100) / 100;
+  },
+
+  normalizeCargoType(v) {
+    if (!v) return '';
+    const u = String(v).toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    if (/FRACION/.test(u)) return 'Fracionado';
+    if (/DEDIC/.test(u))   return 'Dedicado';
+    if (/RETIRA|CLIENTE/.test(u)) return 'Retira';
+    return String(v);
+  },
+
+  calcDelay(row) {
+    if (!row.oc_enviada || !row.data_carregamento) return 'SEM DADOS';
+    if (Utils.diffHours(row.oc_enviada, row.chegada_transportadora) > 3) return 'ATRASO TRANSPORTADORA';
+    if (Utils.diffHours(row.oc_enviada, row.data_carregamento) > 3) return 'ATRASO EXPEDIÇÃO';
+    return 'NO PRAZO';
+  },
+
+  sepStatus(row) {
+    if (row.sep_inicio && row.sep_fim) return 'ok';
+    if (row.sep_inicio) return 'ini';
+    return 'no';
+  },
+
+  normalizeDate(s) {
+    if (!s) return null;
+    const m = String(s).match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (!m) return null;
+    return new Date(+m[1], +m[2] - 1, +m[3]).getTime();
+  },
+
+  filterByDateRange(val, from, to) {
+    if (!from && !to) return true;
+    const ts = Utils.normalizeDate(val);
+    if (ts === null) return false;
+    if (from && Utils.normalizeDate(from) !== null && ts < Utils.normalizeDate(from)) return false;
+    if (to   && Utils.normalizeDate(to)   !== null && ts > Utils.normalizeDate(to))   return false;
+    return true;
+  },
+
+  getVal(id) { const el = document.getElementById(id); return el ? el.value.trim() : ''; },
+  avg(arr)   { return arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : 0; },
+
+  toast(msg, type = 'ok', duration = 3500) {
+    const el = document.createElement('div');
+    el.className = `toast toast-${type}`;
+    el.innerHTML = `<i class="fas ${type === 'ok' ? 'fa-check-circle' : 'fa-times-circle'}"></i> ${msg}`;
+    document.getElementById('toast-container').appendChild(el);
+    setTimeout(() => { el.style.opacity = '0'; el.style.transition = 'opacity .3s'; setTimeout(() => el.remove(), 300); }, duration);
+  },
+};
+
+/* ============================================================
+   TABLE HELPERS
+============================================================ */
+const TableHelper = {
+  makeTd(val) {
+    const td = document.createElement('td');
+    const s = (val === null || val === undefined || val === '') ? '—' : String(val);
+    td.textContent = s; td.title = s;
+    return td;
+  },
+  makeHtmlTd(html) {
+    const td = document.createElement('td'); td.innerHTML = html; return td;
+  },
+  makeEmptyRow(cols, msg = 'Nenhum dado encontrado') {
+    const tr = document.createElement('tr');
+    const td = document.createElement('td');
+    td.colSpan = cols;
+    td.style.cssText = 'text-align:center;padding:40px;color:var(--gray-400)';
+    td.textContent = msg;
+    tr.appendChild(td);
+    return tr;
+  },
+  /* Renderizador genérico: recebe tbody id, array de dados e builder de linha */
+  render(tbodyId, rows, rowBuilder, emptyMsg, emptyCols) {
+    const tbody = document.getElementById(tbodyId);
+    if (!tbody) return;
+    tbody.replaceChildren();
+    if (!rows.length) { tbody.appendChild(TableHelper.makeEmptyRow(emptyCols, emptyMsg)); return; }
+    rows.forEach(row => tbody.appendChild(rowBuilder(row)));
+  },
+};
+
+/* ============================================================
+   RENDERERS — usam TableHelper.render genérico
+============================================================ */
+const Renderers = {
+  renderExp(rows) {
+    TableHelper.render('tbody-exp', rows, row => {
+      const delay = Utils.calcDelay(row);
+      const tSep  = Utils.diffHours(row.sep_inicio, row.sep_fim);
+      const tCarr = Utils.diffHours(row.chegada_transportadora, row.data_carregamento);
+      const tLead = Utils.diffHours(row.data_empenho, row.data_carregamento);
+      const tr = document.createElement('tr');
+      if (delay === 'ATRASO TRANSPORTADORA') tr.className = 'row-atr-transp';
+      else if (delay === 'ATRASO EXPEDIÇÃO')  tr.className = 'row-atr-exp';
+      if (row.houve_erro === 'Sim') tr.className = (tr.className ? tr.className + ' ' : '') + 'row-erro';
+      [row.filial, row.pedidos, row.cliente, row.cidade, row.uf,
+       Utils.formatNumber(row.paletes, 2), row.nota_fiscal, row.transportadora,
+       Utils.normalizeCargoType(row.tipo_carregamento), row.hora_programada,
+       Utils.formatDatetime(row.data_empenho), Utils.formatDatetime(row.sep_inicio),
+       Utils.formatDatetime(row.sep_fim), Utils.formatDatetime(row.oc_enviada),
+       Utils.formatDatetime(row.chegada_transportadora), Utils.formatDatetime(row.data_carregamento),
+       Utils.formatHoursMinutes(tSep), Utils.formatHoursMinutes(tCarr), Utils.formatHoursMinutes(tLead),
+      ].forEach(v => tr.appendChild(TableHelper.makeTd(v)));
+      const delayBadgeMap = {
+        'ATRASO TRANSPORTADORA': '<span class="badge badge-atr-transp">Atraso Transp.</span>',
+        'ATRASO EXPEDIÇÃO':      '<span class="badge badge-atr-exp">Atraso Expediç.</span>',
+        'NO PRAZO':              '<span class="badge badge-prazo">No Prazo</span>',
+      };
+      tr.appendChild(TableHelper.makeHtmlTd(delayBadgeMap[delay] || '<span class="badge badge-sem-dados">Sem Dados</span>'));
+      const errTd = document.createElement('td');
+      if (row.houve_erro === 'Sim') {
+        const sp = document.createElement('span');
+        sp.className = 'badge badge-err tooltip-trigger'; sp.title = row.tipo_erro || '';
+        sp.innerHTML = `<i class="fas fa-times-circle"></i> Erro${row.tipo_erro ? ' ⓘ' : ''}`;
+        errTd.appendChild(sp);
+      } else {
+        errTd.innerHTML = '<span class="badge badge-ok"><i class="fas fa-check-circle"></i> OK</span>';
+      }
+      tr.appendChild(errTd);
+      tr.appendChild(TableHelper.makeTd(row.tipo_erro));
+      return tr;
+    }, 'Nenhum dado encontrado', 22);
+  },
+
+  renderAnd(rows) {
+    TableHelper.render('tbody-and', rows, row => {
+      const ss = Utils.sepStatus(row);
+      const tr = document.createElement('tr');
+      [row.filial, row.pedidos, row.cliente, row.cidade, row.uf,
+       Utils.formatNumber(row.paletes, 2), row.nota_fiscal, row.transportadora,
+       Utils.normalizeCargoType(row.tipo_carregamento), row.hora_programada,
+       Utils.formatDatetime(row.data_empenho), Utils.formatDatetime(row.sep_inicio),
+       Utils.formatDatetime(row.sep_fim), Utils.formatDatetime(row.oc_enviada),
+       Utils.formatDatetime(row.chegada_transportadora), Utils.formatDatetime(row.data_carregamento),
+      ].forEach(v => tr.appendChild(TableHelper.makeTd(v)));
+      const sepBadge = ss === 'ok'  ? '<span class="badge badge-sep-ok"><i class="fas fa-check"></i> Concluída</span>'
+                     : ss === 'ini' ? '<span class="badge badge-sep-ini"><i class="fas fa-clock"></i> Em Andamento</span>'
+                     :                '<span class="badge badge-sep-no">Falta Iniciar</span>';
+      tr.appendChild(TableHelper.makeHtmlTd(sepBadge));
+      tr.appendChild(TableHelper.makeHtmlTd(row.houve_erro === 'Sim'
+        ? '<span class="badge badge-err">Erro</span>'
+        : '<span class="badge badge-ok">OK</span>'));
+      return tr;
+    }, 'Nenhum pedido em andamento', 18);
+  },
+
+  renderRec(rows) {
+    TableHelper.render('tbody-rec', rows, row => {
+      const tr = document.createElement('tr');
+      if (row.houve_erro === 'Sim') tr.className = 'row-erro';
+      [row.filial, row.nf, row.cliente_filial, row.transportadora,
+       Utils.formatDatetime(row.data_recebimento), Utils.formatDatetime(row.data_lancamento),
+       row.armazem, row.observacao,
+      ].forEach(v => tr.appendChild(TableHelper.makeTd(v)));
+      tr.appendChild(TableHelper.makeHtmlTd(row.data_lancamento
+        ? '<span class="badge badge-lanc">Lançado</span>'
+        : '<span class="badge badge-pend">Pendente</span>'));
+      tr.appendChild(TableHelper.makeHtmlTd(row.houve_erro === 'Sim'
+        ? '<span class="badge badge-err">Erro</span>'
+        : '<span class="badge badge-ok">OK</span>'));
+      tr.appendChild(TableHelper.makeTd(row.qual_erro));
+      return tr;
+    }, 'Nenhum dado encontrado', 11);
+  },
+};
+
+/* ============================================================
+   KPIs
+============================================================ */
+const KPI = {
+  updateExp(data) {
+    const n = data.length, errors = data.filter(r => r.houve_erro === 'Sim').length;
+    const sepTimes  = data.map(r => Utils.diffHours(r.sep_inicio, r.sep_fim)).filter(x => x > 0);
+    const carrTimes = data.map(r => Utils.diffHours(r.chegada_transportadora, r.data_carregamento)).filter(x => x > 0);
+    const leadTimes = data.map(r => Utils.diffHours(r.data_empenho, r.data_carregamento)).filter(x => x > 0);
+    const paletes   = data.reduce((a, r) => a + (parseFloat(r.paletes) || 0), 0);
+    Utils.setText('kpi-exp-total',     n.toLocaleString('pt-BR'));
+    Utils.setText('kpi-exp-errtaxa',   (n ? ((errors / n) * 100).toFixed(1) : 0) + '%');
+    Utils.setText('kpi-exp-efi',       (n ? ((n - errors) / n * 100).toFixed(1) : 0) + '%');
+    Utils.setText('kpi-exp-sep',       Utils.formatHoursMinutes(Utils.avg(sepTimes)));
+    Utils.setText('kpi-exp-carr',      Utils.formatHoursMinutes(Utils.avg(carrTimes)));
+    Utils.setText('kpi-exp-lead',      Utils.formatHoursMinutes(Utils.avg(leadTimes)));
+    Utils.setText('kpi-exp-pal',       Utils.formatNumber(paletes, 1));
+    Utils.setText('kpi-exp-atrtransp', data.filter(r => Utils.calcDelay(r) === 'ATRASO TRANSPORTADORA').length.toLocaleString('pt-BR'));
+    Utils.setText('kpi-exp-atrexp',    data.filter(r => Utils.calcDelay(r) === 'ATRASO EXPEDIÇÃO').length.toLocaleString('pt-BR'));
+    Utils.setText('kpi-exp-frac',      data.filter(r => Utils.normalizeCargoType(r.tipo_carregamento || '') === 'Fracionado').length.toLocaleString('pt-BR'));
+    Utils.setText('kpi-exp-ded',       data.filter(r => Utils.normalizeCargoType(r.tipo_carregamento || '') === 'Dedicado').length.toLocaleString('pt-BR'));
+    Utils.setText('kpi-exp-ret',       data.filter(r => Utils.normalizeCargoType(r.tipo_carregamento || '') === 'Retira').length.toLocaleString('pt-BR'));
+  },
+
+  updateAnd(data) {
+    const paletes = data.reduce((a, r) => a + (parseFloat(r.paletes) || 0), 0);
+    Utils.setText('kpi-and-total', data.length.toLocaleString('pt-BR'));
+    Utils.setText('kpi-and-pal',   Utils.formatNumber(paletes, 1));
+    Utils.setText('kpi-and-sep',   data.filter(r => Utils.sepStatus(r) === 'ini').length.toLocaleString('pt-BR'));
+    Utils.setText('kpi-and-ok',    data.filter(r => Utils.sepStatus(r) === 'ok').length.toLocaleString('pt-BR'));
+    Utils.setText('kpi-and-falta', data.filter(r => Utils.sepStatus(r) === 'no').length.toLocaleString('pt-BR'));
+  },
+
+  updateRec(data) {
+    const total = data.length, lanc = data.filter(r => r.data_lancamento).length;
+    const errors = data.filter(r => r.houve_erro === 'Sim').length;
+    Utils.setText('kpi-rec-total',   total.toLocaleString('pt-BR'));
+    Utils.setText('kpi-rec-lanc',    lanc.toLocaleString('pt-BR'));
+    Utils.setText('kpi-rec-pend',    (total - lanc).toLocaleString('pt-BR'));
+    Utils.setText('kpi-rec-errtaxa', (total ? ((errors / total) * 100).toFixed(1) : 0) + '%');
+  },
+};
+
+/* ============================================================
+   PAGINAÇÃO
+============================================================ */
+class Paginator {
+  constructor(key) { this.key = key; this.data = []; this.page = 1; this.pageSize = 25; }
+  get totalPages() { return Math.max(1, Math.ceil(this.data.length / this.pageSize)); }
+  setPageSize(n)  { this.pageSize = n; this.page = 1; this.render(); }
+  setData(d)      { this.data = d; this.page = 1; this.render(); }
+  go(dir) {
+    if (dir === 'first') this.page = 1;
+    else if (dir === 'prev') this.page = Math.max(1, this.page - 1);
+    else if (dir === 'next') this.page = Math.min(this.totalPages, this.page + 1);
+    else if (dir === 'last') this.page = this.totalPages;
+    this.render();
+  }
+  goTo(p) { if (p >= 1 && p <= this.totalPages) { this.page = p; this.render(); } }
+  render() {
+    const start = (this.page - 1) * this.pageSize;
+    const end   = Math.min(start + this.pageSize, this.data.length);
+    const k = this.key;
+    if (k === 'exp') Renderers.renderExp(this.data.slice(start, end));
+    else if (k === 'and') Renderers.renderAnd(this.data.slice(start, end));
+    else Renderers.renderRec(this.data.slice(start, end));
+    Utils.setText(`page-${k}-start`, (this.data.length ? start + 1 : 0).toLocaleString('pt-BR'));
+    Utils.setText(`page-${k}-end`,   end.toLocaleString('pt-BR'));
+    Utils.setText(`page-${k}-total`, this.data.length.toLocaleString('pt-BR'));
+    Utils.setText(`page-${k}-total-pages`, this.totalPages);
+    const inp = document.getElementById(`page-${k}-input`); if (inp) inp.value = this.page;
+  }
+}
+const Paginators = { exp: new Paginator('exp'), and: new Paginator('and'), rec: new Paginator('rec') };
+
+/* ============================================================
+   FILTROS
+============================================================ */
+const Filters = {
+  applyAll() {
+    State.filtExp = Filters.filterExp();
+    State.filtAnd = Filters.filterAnd();
+    State.filtRec = Filters.filterRec();
+    Paginators.exp.setData(State.filtExp);
+    Paginators.and.setData(State.filtAnd);
+    Paginators.rec.setData(State.filtRec);
+    KPI.updateExp(State.filtExp);
+    KPI.updateAnd(State.filtAnd);
+    KPI.updateRec(State.filtRec);
+    Filters.updateCount('count-exp', State.filtExp.length);
+    Filters.updateCount('count-and', State.filtAnd.length);
+    Filters.updateCount('count-rec', State.filtRec.length);
+  },
+
+  updateCount(id, n) {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = `<strong>${n.toLocaleString('pt-BR')}</strong> resultado${n !== 1 ? 's' : ''}`;
+  },
+
+  filterExp() {
+    return State.rawExp.filter(r => {
+      const pedido = Utils.getVal('filt-exp-pedido');
+      if (pedido) { const pts = pedido.split(',').map(x => x.trim()).filter(Boolean); if (!pts.some(b => String(r.pedidos || '').includes(b))) return false; }
+      if (Utils.getVal('filt-exp-cliente') && !String(r.cliente || '').toLowerCase().includes(Utils.getVal('filt-exp-cliente').toLowerCase())) return false;
+      if (Utils.getVal('filt-exp-transp')  && r.transportadora !== Utils.getVal('filt-exp-transp')) return false;
+      if (Utils.getVal('filt-exp-uf')      && r.uf !== Utils.getVal('filt-exp-uf')) return false;
+      if (Utils.getVal('filt-exp-tipo')    && Utils.normalizeCargoType(r.tipo_carregamento || '') !== Utils.getVal('filt-exp-tipo')) return false;
+      if (Utils.getVal('filt-exp-atraso')  && Utils.calcDelay(r) !== Utils.getVal('filt-exp-atraso')) return false;
+      const fe = Utils.getVal('filt-exp-erro');
+      if (fe === 's' && r.houve_erro !== 'Sim') return false;
+      if (fe === 'n' && r.houve_erro === 'Sim') return false;
+      return Utils.filterByDateRange(r.data_carregamento, Utils.getVal('filt-exp-de'), Utils.getVal('filt-exp-ate'));
+    });
+  },
+
+  filterAnd() {
+    return State.rawAnd.filter(r => {
+      const pedido = Utils.getVal('filt-and-pedido');
+      if (pedido) { const pts = pedido.split(',').map(x => x.trim()).filter(Boolean); if (!pts.some(b => String(r.pedidos || '').includes(b))) return false; }
+      if (Utils.getVal('filt-and-cliente') && !String(r.cliente || '').toLowerCase().includes(Utils.getVal('filt-and-cliente').toLowerCase())) return false;
+      if (Utils.getVal('filt-and-transp')  && r.transportadora !== Utils.getVal('filt-and-transp')) return false;
+      if (Utils.getVal('filt-and-tipo')    && Utils.normalizeCargoType(r.tipo_carregamento || '') !== Utils.getVal('filt-and-tipo')) return false;
+      if (Utils.getVal('filt-and-sep')     && Utils.sepStatus(r) !== Utils.getVal('filt-and-sep')) return false;
+      return true;
+    });
+  },
+
+  filterRec() {
+    return State.rawRec.filter(r => {
+      const nf = Utils.getVal('filt-rec-nf');
+      if (nf) { const pts = nf.split(',').map(x => x.trim()).filter(Boolean); if (!pts.some(b => String(r.nf || '').includes(b))) return false; }
+      if (Utils.getVal('filt-rec-cliente') && !String(r.cliente_filial || '').toLowerCase().includes(Utils.getVal('filt-rec-cliente').toLowerCase())) return false;
+      if (Utils.getVal('filt-rec-transp')  && r.transportadora !== Utils.getVal('filt-rec-transp')) return false;
+      if (Utils.getVal('filt-rec-armazem') && r.armazem !== Utils.getVal('filt-rec-armazem')) return false;
+      const fl = Utils.getVal('filt-rec-lanc');
+      if (fl === 'l' && !r.data_lancamento) return false;
+      if (fl === 'p' &&  r.data_lancamento) return false;
+      const fe = Utils.getVal('filt-rec-erro');
+      if (fe === 's' && r.houve_erro !== 'Sim') return false;
+      if (fe === 'n' && r.houve_erro === 'Sim') return false;
+      return Utils.filterByDateRange(r.data_recebimento, Utils.getVal('filt-rec-de'), Utils.getVal('filt-rec-ate'));
+    });
+  },
+
+  /* FIX: só restaura valor anterior se ainda existe na nova filial */
+  populateDynamicSelects() {
+    Filters.populateSelect('filt-exp-transp',  State.rawExp, r => r.transportadora);
+    Filters.populateSelect('filt-exp-uf',      State.rawExp, r => r.uf);
+    Filters.populateSelect('filt-and-transp',  State.rawAnd, r => r.transportadora);
+    Filters.populateSelect('filt-rec-transp',  State.rawRec, r => r.transportadora);
+    Filters.populateSelect('filt-rec-armazem', State.rawRec, r => r.armazem);
+  },
+
+  populateSelect(id, data, extractor) {
+    const sel = document.getElementById(id); if (!sel) return;
+    const prev = sel.value;
+    const vals = {};
+    data.forEach(r => { const v = (extractor(r) || '').trim(); if (v) vals[v] = 1; });
+    sel.innerHTML = '<option value="">Todos</option>';
+    Object.keys(vals).sort().forEach(v => {
+      const o = document.createElement('option'); o.value = o.textContent = v; sel.appendChild(o);
+    });
+    if (prev && vals[prev]) sel.value = prev; // FIX: valida antes de restaurar
+  },
+
+  /* Habilita/desabilita todos os inputs dos filtros */
+  setEnabled(enabled) {
+    [
+      'filt-exp-pedido','filt-exp-cliente','filt-exp-transp','filt-exp-uf','filt-exp-tipo',
+      'filt-exp-atraso','filt-exp-erro','filt-exp-de','filt-exp-ate',
+      'filt-and-pedido','filt-and-cliente','filt-and-transp','filt-and-tipo','filt-and-sep',
+      'filt-rec-nf','filt-rec-cliente','filt-rec-transp','filt-rec-armazem',
+      'filt-rec-lanc','filt-rec-erro','filt-rec-de','filt-rec-ate',
+    ].forEach(id => { const el = document.getElementById(id); if (el) el.disabled = !enabled; });
+  },
+};
+
+/* ============================================================
+   AUTO-REFRESH — FIX: .stop() antes de cada .start() evita dupla execução ao trocar filial
+============================================================ */
+const AutoRefresh = {
+  _timer: null, _countdown: null, _nextAt: null,
+
+  start(ms, callback) {
+    this.stop(); // FIX crítico: cancela qualquer timer anterior
+    this._nextAt = Date.now() + ms;
+    this._timer = setInterval(() => { this._nextAt = Date.now() + ms; callback(); }, ms);
+    this._tick();
+    this._countdown = setInterval(() => this._tick(), 1000);
+    document.getElementById('refresh-indicator').classList.add('visible');
+  },
+
+  stop() {
+    if (this._timer)    clearInterval(this._timer);
+    if (this._countdown) clearInterval(this._countdown);
+    this._timer = this._countdown = this._nextAt = null;
+    document.getElementById('refresh-indicator').classList.remove('visible');
+  },
+
+  _tick() {
+    if (!this._nextAt) return;
+    const rem = Math.max(0, this._nextAt - Date.now());
+    const m = Math.floor(rem / 60000), s = Math.floor((rem % 60000) / 1000);
+    const el = document.getElementById('refresh-countdown');
+    if (el) el.textContent = `${Utils.pad(m)}:${Utils.pad(s)}`;
+  },
+};
+
+/* ============================================================
+   LOADING / CLEAR
+============================================================ */
+function setLoadingState(loading) {
+  ['exp', 'and', 'rec'].forEach(k => {
+    const ld = document.getElementById(`loading-${k}`);
+    if (!ld) return;
+    if (loading) { ld.style.display = 'flex'; ld.querySelector('span').textContent = 'Carregando...'; }
+    else { ld.style.display = 'none'; }
+  });
+}
+
+function clearAllData() {
+  State.rawExp = []; State.rawAnd = []; State.rawRec = [];
+  Paginators.exp.setData([]); Paginators.and.setData([]); Paginators.rec.setData([]);
+  ['exp', 'and', 'rec'].forEach(k => {
+    const ld = document.getElementById(`loading-${k}`);
+    if (ld) { ld.style.display = 'flex'; ld.querySelector('span').textContent = 'Selecione uma filial'; }
+  });
+}
+
+/* ============================================================
+   APP
+============================================================ */
+const App = {
+  init() {
+    App.initFilialSelect();
+    App.bindFilterListeners();
+    // Filtros começam desabilitados — sem filial selecionada
+    Filters.setEnabled(false);
+  },
+
+  initFilialSelect() {
+    const sel = document.getElementById('filial-select');
+    sel.innerHTML = '<option value="">Selecione uma filial</option><option value="TODAS">TODAS AS FILIAIS</option>';
+    FILIAIS.forEach(f => { const o = document.createElement('option'); o.value = o.textContent = f; sel.appendChild(o); });
+    const saved = localStorage.getItem('pFilial');
+    if (saved) { const opt = sel.querySelector(`option[value="${saved}"]`); if (opt) { sel.value = saved; sel.dispatchEvent(new Event('change')); } }
+    sel.addEventListener('change', e => {
+      const val = e.target.value;
+      if (!val) {
+        State.currentFilial = null;
+        document.getElementById('filial-pill').style.display = 'none';
+        Filters.setEnabled(false);
+        clearAllData();
+        AutoRefresh.stop();
+        return;
+      }
+      State.currentFilial = val;
+      localStorage.setItem('pFilial', val);
+      const pill = document.getElementById('filial-pill');
+      pill.textContent = val; pill.style.display = 'block';
+      AutoRefresh.start(AUTO_REFRESH_MS, App.loadAll); // stop() interno garante sem dupla execução
+      App.loadAll();
+    });
+  },
+
+  async loadAll() {
+    if (!State.currentFilial) return;
+    setLoadingState(true);
+    try {
+      const isAll = State.currentFilial === 'TODAS';
+      const q = (table) => { const base = sb.from(table).select('*'); return isAll ? base : base.eq('filial', State.currentFilial); };
+      const [qE, qA, qR] = await Promise.all([
+        q(TABLE_EXP_HIST).order('finalizado_em', { ascending: false }),
+        q(TABLE_EXP_AND).order('criado_em',      { ascending: false }),
+        q(TABLE_REC_HIST).order('finalizado_em', { ascending: false }),
+      ]);
+      State.rawExp = (qE?.data) || []; State.rawAnd = (qA?.data) || []; State.rawRec = (qR?.data) || [];
+      if (qE?.error) console.warn('EH:', qE.error.message);
+      if (qA?.error) console.warn('EA:', qA.error.message);
+      if (qR?.error) console.warn('RH:', qR.error.message);
+      Filters.populateDynamicSelects();
+      Filters.setEnabled(true);
+    } catch (err) {
+      console.error(err);
+      Utils.toast('Erro ao carregar dados', 'err');
+    }
+    setLoadingState(false);
+    Filters.applyAll();
+  },
+
+  switchTab(tab) {
+    State.activeTab = tab;
+    ['exp', 'and', 'rec'].forEach(k => {
+      document.getElementById(`tab-btn-${k}`)?.classList.toggle('active', k === tab);
+      document.getElementById(`panel-${k}`)?.classList.toggle('active', k === tab);
+    });
+    Filters.applyAll();
+  },
+
+  resetFilters(tab) {
+    const textIds   = { exp: ['filt-exp-pedido','filt-exp-cliente','filt-exp-de','filt-exp-ate'], and: ['filt-and-pedido','filt-and-cliente'], rec: ['filt-rec-nf','filt-rec-cliente','filt-rec-de','filt-rec-ate'] };
+    const selectIds = { exp: ['filt-exp-transp','filt-exp-uf','filt-exp-tipo','filt-exp-atraso','filt-exp-erro'], and: ['filt-and-transp','filt-and-tipo','filt-and-sep'], rec: ['filt-rec-transp','filt-rec-armazem','filt-rec-lanc','filt-rec-erro'] };
+    (textIds[tab]   || []).forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+    (selectIds[tab] || []).forEach(id => { const el = document.getElementById(id); if (el) el.selectedIndex = 0; });
+    Filters.applyAll();
+  },
+
+  /* FIX: CSV também disponível para Expedição em Andamento */
+  exportCSV(tipo) {
+    const data = tipo === 'exp' ? State.filtExp : tipo === 'and' ? State.filtAnd : State.filtRec;
+    if (!data.length) { Utils.toast('Nenhum dado para exportar.', 'err'); return; }
+    let headers, rows;
+    if (tipo === 'exp') {
+      headers = ['Filial','Pedido','Cliente','Cidade','UF','Paletes','NF','Transportadora','Tipo','H.Prog','Empenho','Sep.Início','Sep.Fim','OC Enviada','Chegada T.','Carregamento','T.Sep','T.Carr','Lead Time','Status Atraso','Houve Erro','Tipo Erro'];
+      rows = data.map(r => [
+        r.filial||'',r.pedidos||'',r.cliente||'',r.cidade||'',r.uf||'',r.paletes??'',
+        r.nota_fiscal||'',r.transportadora||'',Utils.normalizeCargoType(r.tipo_carregamento||''),r.hora_programada||'',
+        Utils.formatDatetime(r.data_empenho),Utils.formatDatetime(r.sep_inicio),Utils.formatDatetime(r.sep_fim),
+        Utils.formatDatetime(r.oc_enviada),Utils.formatDatetime(r.chegada_transportadora),Utils.formatDatetime(r.data_carregamento),
+        Utils.formatHoursMinutes(Utils.diffHours(r.sep_inicio,r.sep_fim)),
+        Utils.formatHoursMinutes(Utils.diffHours(r.chegada_transportadora,r.data_carregamento)),
+        Utils.formatHoursMinutes(Utils.diffHours(r.data_empenho,r.data_carregamento)),
+        Utils.calcDelay(r),r.houve_erro||'',r.tipo_erro||'',
+      ]);
+    } else if (tipo === 'and') {
+      headers = ['Filial','Pedido','Cliente','Cidade','UF','Paletes','NF','Transportadora','Tipo','H.Prog','Empenho','Sep.Início','Sep.Fim','OC Enviada','Chegada T.','Carregamento','Sep.Status','Houve Erro'];
+      rows = data.map(r => {
+        const ss = Utils.sepStatus(r);
+        return [
+          r.filial||'',r.pedidos||'',r.cliente||'',r.cidade||'',r.uf||'',r.paletes??'',
+          r.nota_fiscal||'',r.transportadora||'',Utils.normalizeCargoType(r.tipo_carregamento||''),r.hora_programada||'',
+          Utils.formatDatetime(r.data_empenho),Utils.formatDatetime(r.sep_inicio),Utils.formatDatetime(r.sep_fim),
+          Utils.formatDatetime(r.oc_enviada),Utils.formatDatetime(r.chegada_transportadora),Utils.formatDatetime(r.data_carregamento),
+          ss==='ok'?'Concluída':ss==='ini'?'Em Andamento':'Falta Iniciar',r.houve_erro||'',
+        ];
+      });
+    } else {
+      headers = ['Filial','NF','Cliente/Filial','Transportadora','Data Recebimento','Data Lançamento','Armazém','Observação','Status','Houve Erro','Qual Erro'];
+      rows = data.map(r => [
+        r.filial||'',r.nf||'',r.cliente_filial||'',r.transportadora||'',
+        Utils.formatDatetime(r.data_recebimento),Utils.formatDatetime(r.data_lancamento),
+        r.armazem||'',r.observacao||'',r.data_lancamento?'Lançado':'Pendente',r.houve_erro||'',r.qual_erro||'',
+      ]);
+    }
+    const csv = [headers,...rows].map(row =>
+      row.map(c => { const s=String(c); return (s.includes(';')||s.includes('"')||s.includes('\n'))?`"${s.replace(/"/g,'""')}"`:s; }).join(';')
+    ).join('\n');
+    const blob = new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href=url; a.download=`${tipo}_${new Date().toISOString().slice(0,10)}.csv`;
+    a.style.display='none'; document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(()=>URL.revokeObjectURL(url),100);
+    Utils.toast('CSV exportado!');
+  },
+
+  bindFilterListeners() {
+    ['filt-exp-pedido','filt-exp-cliente','filt-and-pedido','filt-and-cliente','filt-rec-nf','filt-rec-cliente','filt-exp-de','filt-exp-ate','filt-rec-de','filt-rec-ate']
+      .forEach(id => { const el=document.getElementById(id); if(el) el.addEventListener('input', ()=>Filters.applyAll()); });
+    ['filt-exp-transp','filt-exp-uf','filt-exp-tipo','filt-exp-atraso','filt-exp-erro','filt-and-transp','filt-and-tipo','filt-and-sep','filt-rec-transp','filt-rec-armazem','filt-rec-lanc','filt-rec-erro']
+      .forEach(id => { const el=document.getElementById(id); if(el) el.addEventListener('change', ()=>Filters.applyAll()); });
+  },
+};
+
+document.addEventListener('DOMContentLoaded', () => App.init());
+</script>
+</body>
+</html>

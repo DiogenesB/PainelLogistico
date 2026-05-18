@@ -1,0 +1,1178 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Painel Supervidor — Supervisor</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --blue:#2563eb;--blue-d:#1d4ed8;--blue-l:#eff6ff;--blue-b:#bfdbfe;
+  --teal:#0d9488;--teal-d:#0f766e;--teal-l:#f0fdfa;--teal-b:#99f6e4;
+  --green:#16a34a;--green-l:#f0fdf4;
+  --red:#dc2626;--red-l:#fef2f2;
+  --amber:#d97706;--amber-l:#fffbeb;
+  --gray-50:#f9fafb;--gray-100:#f3f4f6;--gray-200:#e5e7eb;
+  --gray-300:#d1d5db;--gray-400:#9ca3af;--gray-500:#6b7280;
+  --gray-600:#4b5563;--gray-700:#374151;--gray-800:#1f2937;--gray-900:#111827;
+  --white:#fff;
+  --radius:8px;--radius-lg:12px;--radius-xl:16px;
+  --shadow-sm:0 1px 2px rgba(0,0,0,.05);
+  --shadow:0 1px 3px rgba(0,0,0,.1),0 1px 2px rgba(0,0,0,.06);
+  --shadow-md:0 4px 6px -1px rgba(0,0,0,.07),0 2px 4px -1px rgba(0,0,0,.04);
+  --shadow-lg:0 10px 15px -3px rgba(0,0,0,.08),0 4px 6px -2px rgba(0,0,0,.03);
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html{font-size:14px;-webkit-font-smoothing:antialiased}
+body{font-family:'Inter',sans-serif;background:var(--gray-50);color:var(--gray-900);min-height:100vh;line-height:1.5}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-thumb{background:var(--gray-300);border-radius:99px}
+
+/* ── LOGIN ── */
+#loginScreen{min-height:100vh;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(160deg,var(--gray-900) 0%,#1e3a8a 100%);padding:24px}
+.login-box{background:var(--white);border-radius:var(--radius-xl);padding:40px 36px;
+  width:100%;max-width:400px;box-shadow:var(--shadow-lg);animation:fadeUp .4s ease both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+.login-brand{display:flex;align-items:center;gap:12px;margin-bottom:28px}
+.login-brand-icon{width:40px;height:40px;background:var(--blue);border-radius:10px;
+  display:flex;align-items:center;justify-content:center;color:white;font-size:.95rem}
+.login-brand h1{font-size:1.1rem;font-weight:700;color:var(--gray-900)}
+.login-brand p{font-size:.75rem;color:var(--gray-500);margin-top:1px}
+.login-h{font-size:1.35rem;font-weight:700;color:var(--gray-900);margin-bottom:4px}
+.login-sub{font-size:.82rem;color:var(--gray-500);margin-bottom:24px}
+.lf{margin-bottom:14px}
+.lf label{display:block;font-size:.72rem;font-weight:600;text-transform:uppercase;
+  letter-spacing:.5px;color:var(--gray-600);margin-bottom:5px}
+.lf input{width:100%;padding:10px 12px;border:1.5px solid var(--gray-200);border-radius:var(--radius);
+  font-size:.9rem;font-family:inherit;color:var(--gray-900);background:var(--white);transition:.15s}
+.lf input:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+.login-btn{width:100%;padding:11px;background:var(--blue);color:white;border:none;
+  border-radius:var(--radius);font-size:.9rem;font-weight:600;font-family:inherit;
+  cursor:pointer;transition:.15s;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:4px}
+.login-btn:hover{background:var(--blue-d)}
+.login-btn:disabled{opacity:.6;cursor:not-allowed}
+.login-err{background:var(--red-l);border:1px solid #fecaca;color:var(--red);
+  padding:10px 12px;border-radius:var(--radius);font-size:.8rem;margin-top:12px;
+  display:none;align-items:center;gap:8px;border-left:3px solid var(--red)}
+
+/* ── APP SHELL ── */
+#app{display:none;flex-direction:column;min-height:100vh}
+.topbar{background:var(--white);border-bottom:1px solid var(--gray-200);
+  padding:0 24px;position:sticky;top:0;z-index:100;box-shadow:var(--shadow-sm)}
+.topbar-inner{display:flex;align-items:center;justify-content:space-between;height:56px;gap:16px}
+.topbar-brand{display:flex;align-items:center;gap:10px}
+.topbar-brand-icon{width:30px;height:30px;background:var(--blue);border-radius:7px;
+  display:flex;align-items:center;justify-content:center;color:white;font-size:.8rem}
+.topbar-brand h1{font-size:.9rem;font-weight:700;color:var(--gray-900)}
+.topbar-brand p{font-size:.68rem;color:var(--gray-400)}
+.topbar-right{display:flex;align-items:center;gap:10px}
+.filial-pill{background:var(--blue-l);border:1px solid var(--blue-b);color:var(--blue-d);
+  padding:4px 12px;border-radius:99px;font-size:.75rem;font-weight:600}
+.logout-btn{background:none;border:1px solid var(--gray-200);color:var(--gray-500);
+  padding:6px 12px;border-radius:var(--radius);font-size:.75rem;font-weight:500;
+  cursor:pointer;font-family:inherit;transition:.15s;display:flex;align-items:center;gap:5px}
+.logout-btn:hover{background:var(--gray-100);color:var(--gray-700)}
+
+/* ── TABS ── */
+.tabs-nav{background:var(--white);border-bottom:1px solid var(--gray-200);padding:0 24px;display:flex;overflow-x:auto}
+.tab-item{padding:14px 18px;border:none;background:none;font-family:inherit;font-size:.8rem;
+  font-weight:500;color:var(--gray-500);cursor:pointer;border-bottom:2px solid transparent;
+  margin-bottom:-1px;transition:.15s;display:flex;align-items:center;gap:6px;white-space:nowrap}
+.tab-item:hover{color:var(--gray-800)}
+.tab-item.active{color:var(--blue);border-bottom-color:var(--blue);font-weight:600}
+.tab-item.teal.active{color:var(--teal);border-bottom-color:var(--teal)}
+.tab-item.teal:hover{color:var(--teal-d)}
+.tbadge{font-size:.6rem;font-weight:700;padding:1px 6px;border-radius:99px;
+  background:var(--gray-200);color:var(--gray-600)}
+.tab-item.active .tbadge{background:var(--blue);color:white}
+.tab-item.teal.active .tbadge{background:var(--teal);color:white}
+
+.main{flex:1;padding:24px;max-width:1800px;margin:0 auto;width:100%}
+
+/* ── SECTION CARD ── */
+.scard{background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius-lg);
+  box-shadow:var(--shadow-sm);margin-bottom:16px}
+.scard-header{padding:14px 18px;border-bottom:1px solid var(--gray-100);
+  display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.scard-header h2{font-size:.88rem;font-weight:600;color:var(--gray-800);
+  display:flex;align-items:center;gap:8px}
+.scard-header h2 i{font-size:.8rem;color:var(--gray-400)}
+.scard-header h2 i.blue{color:var(--blue)}
+.scard-header h2 i.teal{color:var(--teal)}
+.scard-body{padding:18px}
+
+/* ── FORM ── */
+.fgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;margin-bottom:14px}
+.fg{display:flex;flex-direction:column;gap:3px}
+.fg label{font-size:.65rem;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--gray-500)}
+.fg label .req{color:var(--red);margin-left:2px}
+.fg input,.fg select,.fg textarea{padding:8px 10px;border:1.5px solid var(--gray-200);
+  border-radius:var(--radius);font-size:.82rem;font-family:inherit;color:var(--gray-900);
+  background:var(--white);transition:.15s;height:36px}
+.fg textarea{height:64px;resize:vertical}
+.fg input:focus,.fg select:focus,.fg textarea:focus{outline:none;border-color:var(--blue);
+  box-shadow:0 0 0 3px rgba(37,99,235,.08)}
+.teal-f .fg input:focus,.teal-f .fg select:focus,.teal-f .fg textarea:focus{
+  border-color:var(--teal);box-shadow:0 0 0 3px rgba(13,148,136,.08)}
+.fg input.err,.fg select.err{border-color:var(--red);background:var(--red-l)}
+.fg select{appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='11' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 9px center;background-size:11px;padding-right:26px}
+.fw{grid-column:span 2}.ff{grid-column:1/-1}
+.cond{display:none}.cond.vis{display:flex}
+.sdiv{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;
+  color:var(--gray-400);padding:6px 0 8px;border-bottom:1px solid var(--gray-100);
+  margin-bottom:2px;grid-column:1/-1;display:flex;align-items:center;gap:6px}
+
+/* ── TABLE ── */
+.twrap{overflow-x:auto;border-radius:var(--radius);border:1px solid var(--gray-200)}
+.dtbl{width:100%;border-collapse:collapse;font-size:.73rem;min-width:1100px}
+.dtbl thead th{background:var(--gray-800);color:white;padding:9px 8px;text-align:left;
+  font-size:.63rem;text-transform:uppercase;letter-spacing:.4px;font-weight:600;
+  white-space:nowrap;position:sticky;top:0;z-index:2}
+.dtbl thead th.th-teal{background:var(--teal-d)}
+.dtbl tbody tr{transition:.1s}
+.dtbl tbody tr:hover{background:var(--gray-50)}
+.dtbl tbody tr:last-child td{border-bottom:none}
+.dtbl tbody td{padding:8px 8px;border-bottom:1px solid var(--gray-100);color:var(--gray-700);
+  vertical-align:middle;white-space:nowrap;max-width:180px;overflow:hidden;text-overflow:ellipsis}
+
+/* ── BADGE ── */
+.badge{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:99px;
+  font-size:.62rem;font-weight:600;text-transform:uppercase;letter-spacing:.3px}
+.b-ok{background:var(--green-l);color:var(--green)}
+.b-err{background:var(--red-l);color:var(--red)}
+.b-pend{background:var(--amber-l);color:var(--amber)}
+.b-lanc{background:var(--green-l);color:var(--green)}
+.b-sep-ok{background:var(--green-l);color:var(--green)}
+.b-sep-ini{background:var(--amber-l);color:var(--amber)}
+.b-sep-no{background:var(--gray-100);color:var(--gray-500)}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border:none;
+  border-radius:var(--radius);font-size:.78rem;font-weight:600;font-family:inherit;
+  cursor:pointer;transition:.15s}
+.btn:hover{filter:brightness(.93)}
+.btn-blue{background:var(--blue);color:white}
+.btn-teal{background:var(--teal);color:white}
+.btn-green{background:var(--green);color:white}
+.btn-red{background:var(--red);color:white}
+.btn-ghost{background:var(--white);color:var(--gray-700);border:1px solid var(--gray-200)}
+.btn-ghost:hover{background:var(--gray-100)}
+.btn-sm{padding:6px 12px;font-size:.73rem}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.racts{display:flex;gap:4px}
+.bsm{width:26px;height:26px;display:flex;align-items:center;justify-content:center;
+  border-radius:5px;border:1px solid var(--gray-200);background:var(--white);
+  color:var(--gray-500);cursor:pointer;font-size:.68rem;transition:.15s}
+.bsm:hover{background:var(--blue);color:white;border-color:var(--blue)}
+.bsm.del:hover{background:var(--red);border-color:var(--red)}
+.bsm.fin:hover{background:var(--green);border-color:var(--green)}
+.bsm.te:hover{background:var(--teal);border-color:var(--teal)}
+
+/* ── MODAL ── */
+.mbd{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.4);
+  display:none;align-items:center;justify-content:center;padding:20px}
+.mbd.open{display:flex}
+.modal{background:var(--white);border-radius:var(--radius-lg);width:100%;
+  box-shadow:var(--shadow-lg);max-height:90vh;display:flex;flex-direction:column;
+  animation:fadeUp .2s ease both}
+.modal.sm{max-width:420px}.modal.md{max-width:700px}.modal.lg{max-width:960px}
+.mhd{padding:16px 20px;border-bottom:1px solid var(--gray-100);
+  display:flex;align-items:center;justify-content:space-between}
+.mhd h3{font-size:.9rem;font-weight:600;color:var(--gray-900);display:flex;align-items:center;gap:8px}
+.mcl{width:28px;height:28px;border:none;background:var(--gray-100);border-radius:6px;
+  font-size:.9rem;cursor:pointer;color:var(--gray-500);display:flex;align-items:center;justify-content:center;transition:.15s}
+.mcl:hover{background:var(--red-l);color:var(--red)}
+.mbo{padding:20px;overflow-y:auto;flex:1}
+.mft{padding:12px 20px;border-top:1px solid var(--gray-100);display:flex;
+  justify-content:flex-end;gap:8px;background:var(--gray-50);border-radius:0 0 var(--radius-lg) var(--radius-lg)}
+.cicon{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-size:1.3rem;margin:0 auto 14px}
+.ci-g{background:var(--green-l);color:var(--green)}
+.ci-r{background:var(--red-l);color:var(--red)}
+.ci-t{background:var(--teal-l);color:var(--teal)}
+.ctitle{text-align:center;font-size:.95rem;font-weight:700;color:var(--gray-900);margin-bottom:6px}
+.ctext{text-align:center;font-size:.8rem;color:var(--gray-500);line-height:1.5}
+.warn{background:var(--amber-l);border:1px solid #fde68a;border-radius:var(--radius);
+  padding:10px 14px;font-size:.78rem;color:#92400e;display:flex;gap:8px;margin-bottom:14px}
+.warn i{color:var(--amber);flex-shrink:0;margin-top:1px}
+
+/* ── TOAST ── */
+#toastC{position:fixed;top:16px;right:16px;z-index:9999;display:flex;flex-direction:column;gap:6px;pointer-events:none}
+.toast{padding:10px 14px;border-radius:var(--radius);box-shadow:var(--shadow-md);display:flex;
+  align-items:center;gap:8px;font-size:.78rem;font-weight:500;animation:fadeUp .25s ease both;pointer-events:all;max-width:320px}
+.tok{background:var(--green-l);border:1px solid #bbf7d0;color:var(--green);border-left:3px solid var(--green)}
+.terr{background:var(--red-l);border:1px solid #fecaca;color:var(--red);border-left:3px solid var(--red)}
+.tinf{background:var(--blue-l);border:1px solid var(--blue-b);color:var(--blue);border-left:3px solid var(--blue)}
+
+/* ── LOADING ── */
+.lov{position:fixed;inset:0;z-index:300;background:rgba(255,255,255,.7);backdrop-filter:blur(3px);
+  display:none;align-items:center;justify-content:center;flex-direction:column;gap:12px}
+.lov.vis{display:flex}
+.spin{width:36px;height:36px;border:2.5px solid var(--gray-200);border-top-color:var(--blue);
+  border-radius:50%;animation:rot 1s linear infinite}
+@keyframes rot{to{transform:rotate(360deg)}}
+
+/* ── EMPTY ── */
+.empty{text-align:center;padding:48px 20px;color:var(--gray-400)}
+.empty i{font-size:2rem;margin-bottom:12px;display:block;color:var(--gray-200)}
+.empty p{font-size:.8rem}
+
+/* ── HIST FILTERS ── */
+.hf{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-bottom:16px;padding:16px;
+  background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius-lg)}
+.hf .fg{min-width:130px}
+
+/* ── KPI ROW ── */
+.krow{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:16px}
+.kc{background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius-lg);
+  padding:14px 16px;border-top:3px solid var(--blue)}
+.kc.teal{border-top-color:var(--teal)}
+.kval{font-size:1.4rem;font-weight:700;color:var(--gray-900);line-height:1.1}
+.klbl{font-size:.65rem;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--gray-400);margin-top:3px}
+
+/* ── EDIT ONLY ERR MODAL ── */
+.err-edit-box{background:var(--gray-50);border:1px solid var(--gray-200);border-radius:var(--radius-lg);padding:16px;margin-bottom:16px}
+.err-edit-box p{font-size:.75rem;color:var(--gray-500);margin-bottom:10px}
+.err-edit-box strong{color:var(--gray-700)}
+
+@media(max-width:768px){
+  .main{padding:14px}
+  .fgrid{grid-template-columns:1fr 1fr}
+  .hf{flex-direction:column}
+  .hf .fg{width:100%}
+}
+@media(max-width:480px){
+  .fgrid{grid-template-columns:1fr}
+  .login-box{padding:28px 20px}
+}
+</style>
+</head>
+<body>
+
+<div class="lov" id="lov"><div class="spin"></div>
+  <span style="font-size:.78rem;color:var(--gray-500);font-weight:500" id="lovTxt">Aguarde...</span>
+</div>
+<div id="toastC"></div>
+
+<!-- ═══ LOGIN ═══ -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="login-brand">
+      <div class="login-brand-icon"><i class="fas fa-shipping-fast"></i></div>
+      <div><h1>Pinel Supervidor</h1><p>Expedição &amp; Recebimento</p></div>
+    </div>
+    <h2 class="login-h">Acesso do Supervisor</h2>
+    <p class="login-sub">Entre com suas credenciais para registrar carregamentos</p>
+    <div class="lf"><label>E-mail</label>
+      <input type="email" id="lEmail" placeholder="supervisor@simbiose.com.br" autocomplete="username"></div>
+    <div class="lf"><label>Senha</label>
+      <input type="password" id="lPass" placeholder="••••••••" autocomplete="current-password"></div>
+    <button class="login-btn" id="lBtn" onclick="doLogin()">
+      <i class="fas fa-sign-in-alt"></i> Entrar
+    </button>
+    <div class="login-err" id="lErr">
+      <i class="fas fa-exclamation-circle"></i><span id="lErrTxt">Credenciais inválidas.</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ APP ═══ -->
+<div id="app">
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="topbar-brand">
+        <div class="topbar-brand-icon"><i class="fas fa-shipping-fast"></i></div>
+        <div><h1>Simbiose Agro</h1><p>Painel do Supervisor</p></div>
+      </div>
+      <div class="topbar-right">
+        <span class="filial-pill" id="filialPill">—</span>
+        <button class="logout-btn" onclick="doLogout()"><i class="fas fa-sign-out-alt"></i> Sair</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="tabs-nav">
+    <button class="tab-item active" id="tE" onclick="goTab('exp')">
+      <i class="fas fa-truck-loading"></i> Expedição <span class="tbadge" id="bdgE">0</span>
+    </button>
+    <button class="tab-item" id="tEH" onclick="goTab('expH')">
+      <i class="fas fa-history"></i> Histórico Expedição <span class="tbadge" id="bdgEH">0</span>
+    </button>
+    <button class="tab-item teal" id="tR" onclick="goTab('rec')">
+      <i class="fas fa-dolly"></i> Recebimento <span class="tbadge" id="bdgR">0</span>
+    </button>
+    <button class="tab-item teal" id="tRH" onclick="goTab('recH')">
+      <i class="fas fa-history"></i> Histórico Recebimento <span class="tbadge" id="bdgRH">0</span>
+    </button>
+  </div>
+
+  <main class="main">
+
+    <!-- ── TAB 1: EXPEDIÇÃO ── -->
+    <div id="pExp">
+      <div class="scard">
+        <div class="scard-header">
+          <h2><i class="fas fa-plus-circle blue"></i> Novo Carregamento</h2>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-ghost btn-sm" onclick="limExp()"><i class="fas fa-undo"></i> Limpar</button>
+            <button class="btn btn-blue btn-sm" onclick="salExp()"><i class="fas fa-save"></i> Salvar Pedido</button>
+          </div>
+        </div>
+        <div class="scard-body">
+          <div class="fgrid">
+            <div class="sdiv"><i class="fas fa-info-circle"></i> Identificação</div>
+            <div class="fg"><label>Pedido<span class="req">*</span></label><input type="text" id="eP" placeholder="Nº do pedido"></div>
+            <div class="fg fw"><label>Cliente<span class="req">*</span></label><input type="text" id="eCl" placeholder="Nome do cliente"></div>
+            <div class="fg"><label>Cidade</label><input type="text" id="eCid" placeholder="Cidade destino"></div>
+            <div class="fg"><label>UF</label><select id="eUF"><option value="">—</option>
+              <option>AC</option><option>AL</option><option>AM</option><option>AP</option><option>BA</option>
+              <option>CE</option><option>DF</option><option>ES</option><option>GO</option><option>MA</option>
+              <option>MG</option><option>MS</option><option>MT</option><option>PA</option><option>PB</option>
+              <option>PE</option><option>PI</option><option>PR</option><option>RJ</option><option>RN</option>
+              <option>RO</option><option>RR</option><option>RS</option><option>SC</option><option>SE</option>
+              <option>SP</option><option>TO</option></select></div>
+            <div class="fg"><label>Paletes</label><input type="number" id="ePal" placeholder="0" step="0.5" min="0"></div>
+            <div class="fg"><label>Nota Fiscal</label><input type="text" id="eNF" placeholder="Número da NF"></div>
+            <div class="fg"><label>Transportadora</label><input type="text" id="eTr" placeholder="Nome"></div>
+            <div class="fg"><label>Tipo de Carregamento</label><select id="eTipo">
+              <option value="">—</option>
+              <option>Fracionado</option><option>Dedicado</option><option>Retira</option><option>Transferência</option>
+            </select></div>
+            <div class="fg"><label>Hora Programada</label><input type="time" id="eHP"></div>
+            <div class="sdiv"><i class="fas fa-calendar-alt"></i> Datas e Horários</div>
+            <div class="fg"><label>Data/Hora Empenho</label><input type="datetime-local" id="eEmp"></div>
+            <div class="fg"><label>Início Separação</label><input type="datetime-local" id="eSepI"></div>
+            <div class="fg"><label>Fim Separação</label><input type="datetime-local" id="eSepF"></div>
+            <div class="fg"><label>OC Enviada / Agenda RC</label><input type="datetime-local" id="eOC"></div>
+            <div class="fg"><label>Chegada Transportadora</label><input type="datetime-local" id="eChT"></div>
+            <div class="fg"><label>Data/Hora Carregamento</label><input type="datetime-local" id="eCarr"></div>
+            <div class="sdiv"><i class="fas fa-exclamation-triangle"></i> Erros</div>
+            <div class="fg"><label>Houve Erro?</label>
+              <select id="eErr" onchange="document.getElementById('cEE').classList.toggle('vis',this.value==='Sim')">
+                <option value="Não">Não</option><option value="Sim">Sim</option>
+              </select></div>
+            <div class="fg cond" id="cEE"><label>Tipo de Erro<span class="req">*</span></label>
+              <input type="text" id="eTErr" placeholder="Descreva o erro"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="scard">
+        <div class="scard-header">
+          <h2><i class="fas fa-list blue"></i> Pedidos em Andamento</h2>
+          <span style="font-size:.73rem;color:var(--gray-400)">Clique em <strong style="color:var(--gray-600)">Finalizar</strong> para mover ao histórico</span>
+        </div>
+        <div class="scard-body" style="padding:0">
+          <div id="emE" class="empty" style="display:none"><i class="fas fa-inbox"></i>
+            <p>Nenhum pedido em andamento.<br>Preencha o formulário acima e salve.</p></div>
+          <div class="twrap" id="wE">
+            <table class="dtbl"><thead><tr>
+              <th>Pedido</th><th>Cliente</th><th>Cidade</th><th>UF</th><th>Paletes</th>
+              <th>NF</th><th>Transportadora</th><th>Tipo</th><th>H.Prog</th>
+              <th>Empenho</th><th>Sep.Início</th><th>Sep.Fim</th>
+              <th>OC Enviada</th><th>Chegada T.</th><th>Carregamento</th>
+              <th>Erro</th><th style="min-width:100px">Ações</th>
+            </tr></thead><tbody id="tbE"></tbody></table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── TAB 2: HISTÓRICO EXPEDIÇÃO ── -->
+    <div id="pExpH" style="display:none">
+      <div class="hf">
+        <div class="fg"><label>De</label><input type="date" id="hEDe" onchange="loadHistExp()"></div>
+        <div class="fg"><label>Até</label><input type="date" id="hEAte" onchange="loadHistExp()"></div>
+        <div class="fg" style="min-width:200px"><label>Buscar</label>
+          <input type="text" id="hEBusca" placeholder="Pedido / Cliente / Transp..." oninput="filterHistExp()"></div>
+        <div style="padding-bottom:1px;display:flex;gap:6px;align-items:flex-end">
+          <button class="btn btn-ghost btn-sm" onclick="limFH('exp')"><i class="fas fa-undo"></i></button>
+          <button class="btn btn-green btn-sm" onclick="exportCSV('exp')"><i class="fas fa-file-csv"></i> CSV</button>
+        </div>
+      </div>
+      <div class="krow" id="kpiE" style="display:none"></div>
+      <div class="scard">
+        <div class="scard-header">
+          <h2><i class="fas fa-history blue"></i> Histórico de Expedição</h2>
+          <span style="font-size:.73rem;color:var(--gray-400)" id="cntE">0 registros</span>
+        </div>
+        <div class="scard-body" style="padding:0">
+          <div id="emEH" class="empty" style="display:none"><i class="fas fa-box-open"></i><p>Nenhum carregamento encontrado.</p></div>
+          <div class="twrap" id="wEH">
+            <table class="dtbl"><thead><tr>
+              <th>Pedido</th><th>Cliente</th><th>Cidade</th><th>UF</th><th>Paletes</th>
+              <th>NF</th><th>Transportadora</th><th>Tipo</th><th>H.Prog</th>
+              <th>Empenho</th><th>Sep.Início</th><th>Sep.Fim</th>
+              <th>OC Enviada</th><th>Chegada T.</th><th>Carregamento</th>
+              <th>Erro</th><th>Finalizado em</th><th>Editar</th>
+            </tr></thead><tbody id="tbEH"></tbody></table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── TAB 3: RECEBIMENTO ── -->
+    <div id="pRec" style="display:none">
+      <div class="scard">
+        <div class="scard-header">
+          <h2><i class="fas fa-plus-circle teal"></i> Nova Nota de Recebimento</h2>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-ghost btn-sm" onclick="limRec()"><i class="fas fa-undo"></i> Limpar</button>
+            <button class="btn btn-teal btn-sm" onclick="salRec()"><i class="fas fa-save"></i> Salvar Nota</button>
+          </div>
+        </div>
+        <div class="scard-body">
+          <div class="fgrid teal-f">
+            <div class="sdiv" style="color:var(--teal-d)"><i class="fas fa-file-invoice"></i> Dados da Nota</div>
+            <div class="fg"><label>NF<span class="req">*</span></label><input type="text" id="rNF" placeholder="Número da NF"></div>
+            <div class="fg fw"><label>Cliente / Filial<span class="req">*</span></label><input type="text" id="rCF" placeholder="Nome do cliente ou filial"></div>
+            <div class="fg"><label>Transportadora</label><input type="text" id="rTr" placeholder="Nome"></div>
+            <div class="fg"><label>Armazém Lançado</label><input type="text" id="rArm" placeholder="Ex: Armazém 01"></div>
+            <div class="sdiv" style="color:var(--teal-d)"><i class="fas fa-calendar-alt"></i> Datas</div>
+            <div class="fg"><label>Data Recebimento<span class="req">*</span></label><input type="date" id="rDR"></div>
+            <div class="fg"><label>Data Lançamento</label><input type="date" id="rDL"></div>
+            <div class="sdiv" style="color:var(--teal-d)"><i class="fas fa-comment-alt"></i> Observações e Erros</div>
+            <div class="fg ff"><label>Observação</label><textarea id="rObs" placeholder="Observações sobre o recebimento..."></textarea></div>
+            <div class="fg"><label>Houve Erro?</label>
+              <select id="rErr" onchange="document.getElementById('cRE').classList.toggle('vis',this.value==='Sim')">
+                <option value="Não">Não</option><option value="Sim">Sim</option>
+              </select></div>
+            <div class="fg cond" id="cRE"><label>Qual Erro?<span class="req">*</span></label>
+              <input type="text" id="rQE" placeholder="Descreva o erro"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="scard">
+        <div class="scard-header">
+          <h2><i class="fas fa-list teal"></i> Notas em Andamento</h2>
+          <span style="font-size:.73rem;color:var(--gray-400)">Clique em <strong style="color:var(--gray-600)">Finalizar</strong> para confirmar o lançamento</span>
+        </div>
+        <div class="scard-body" style="padding:0">
+          <div id="emR" class="empty" style="display:none"><i class="fas fa-inbox"></i>
+            <p>Nenhuma nota em andamento.</p></div>
+          <div class="twrap" id="wR">
+            <table class="dtbl"><thead><tr>
+              <th class="th-teal">NF</th><th class="th-teal">Cliente/Filial</th>
+              <th class="th-teal">Transportadora</th><th class="th-teal">Data Receb.</th>
+              <th class="th-teal">Data Lançamento</th><th class="th-teal">Armazém</th>
+              <th class="th-teal">Observação</th><th class="th-teal">Erro</th>
+              <th class="th-teal" style="min-width:100px">Ações</th>
+            </tr></thead><tbody id="tbR"></tbody></table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── TAB 4: HISTÓRICO RECEBIMENTO ── -->
+    <div id="pRecH" style="display:none">
+      <div class="hf">
+        <div class="fg"><label>De</label><input type="date" id="hRDe" onchange="loadHistRec()"></div>
+        <div class="fg"><label>Até</label><input type="date" id="hRAte" onchange="loadHistRec()"></div>
+        <div class="fg" style="min-width:200px"><label>Buscar</label>
+          <input type="text" id="hRBusca" placeholder="NF / Cliente / Transp..." oninput="filterHistRec()"></div>
+        <div style="padding-bottom:1px;display:flex;gap:6px;align-items:flex-end">
+          <button class="btn btn-ghost btn-sm" onclick="limFH('rec')"><i class="fas fa-undo"></i></button>
+          <button class="btn btn-teal btn-sm" onclick="exportCSV('rec')"><i class="fas fa-file-csv"></i> CSV</button>
+        </div>
+      </div>
+      <div class="krow" id="kpiR" style="display:none"></div>
+      <div class="scard">
+        <div class="scard-header">
+          <h2><i class="fas fa-history teal"></i> Histórico de Recebimento</h2>
+          <span style="font-size:.73rem;color:var(--gray-400)" id="cntR">0 registros</span>
+        </div>
+        <div class="scard-body" style="padding:0">
+          <div id="emRH" class="empty" style="display:none"><i class="fas fa-box-open"></i><p>Nenhuma nota encontrada.</p></div>
+          <div class="twrap" id="wRH">
+            <table class="dtbl"><thead><tr>
+              <th class="th-teal">NF</th><th class="th-teal">Cliente/Filial</th>
+              <th class="th-teal">Transportadora</th><th class="th-teal">Data Receb.</th>
+              <th class="th-teal">Data Lançamento</th><th class="th-teal">Armazém</th>
+              <th class="th-teal">Observação</th><th class="th-teal">Erro</th>
+              <th class="th-teal">Finalizado em</th><th class="th-teal">Editar</th>
+            </tr></thead><tbody id="tbRH"></tbody></table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- MODAL EDIT EXP ANDAMENTO -->
+<div class="mbd" id="mEditE">
+  <div class="modal lg">
+    <div class="mhd"><h3><i class="fas fa-edit" style="color:var(--blue)"></i> Editar Carregamento</h3>
+      <button class="mcl" onclick="closeMod('mEditE')">×</button></div>
+    <div class="mbo"><div class="fgrid" id="editEF"></div></div>
+    <div class="mft">
+      <button class="btn btn-ghost" onclick="closeMod('mEditE')">Cancelar</button>
+      <button class="btn btn-blue" onclick="saveEditE()"><i class="fas fa-save"></i> Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL EDIT ERRO EXP HISTÓRICO -->
+<div class="mbd" id="mEditEH">
+  <div class="modal sm">
+    <div class="mhd"><h3><i class="fas fa-edit" style="color:var(--blue)"></i> Editar Registro Finalizado</h3>
+      <button class="mcl" onclick="closeMod('mEditEH')">×</button></div>
+    <div class="mbo">
+      <div class="err-edit-box">
+        <p>Somente o status de erro pode ser alterado em registros já finalizados.</p>
+        <strong id="editEHinfo"></strong>
+      </div>
+      <div class="fgrid">
+        <div class="fg"><label>Houve Erro?</label>
+          <select id="ehErr" onchange="document.getElementById('cEHE').classList.toggle('vis',this.value==='Sim')">
+            <option value="Não">Não</option><option value="Sim">Sim</option>
+          </select></div>
+        <div class="fg cond" id="cEHE"><label>Tipo de Erro</label>
+          <input type="text" id="ehTErr" placeholder="Descreva o erro"></div>
+      </div>
+    </div>
+    <div class="mft">
+      <button class="btn btn-ghost" onclick="closeMod('mEditEH')">Cancelar</button>
+      <button class="btn btn-blue" onclick="saveEditEH()"><i class="fas fa-save"></i> Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL EDIT REC ANDAMENTO -->
+<div class="mbd" id="mEditR">
+  <div class="modal md">
+    <div class="mhd"><h3><i class="fas fa-edit" style="color:var(--teal)"></i> Editar Nota de Recebimento</h3>
+      <button class="mcl" onclick="closeMod('mEditR')">×</button></div>
+    <div class="mbo"><div class="fgrid teal-f" id="editRF"></div></div>
+    <div class="mft">
+      <button class="btn btn-ghost" onclick="closeMod('mEditR')">Cancelar</button>
+      <button class="btn btn-teal" onclick="saveEditR()"><i class="fas fa-save"></i> Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL EDIT ERRO REC HISTÓRICO -->
+<div class="mbd" id="mEditRH">
+  <div class="modal sm">
+    <div class="mhd"><h3><i class="fas fa-edit" style="color:var(--teal)"></i> Editar Registro Finalizado</h3>
+      <button class="mcl" onclick="closeMod('mEditRH')">×</button></div>
+    <div class="mbo">
+      <div class="err-edit-box">
+        <p>Somente o status de erro pode ser alterado em registros já finalizados.</p>
+        <strong id="editRHinfo"></strong>
+      </div>
+      <div class="fgrid teal-f">
+        <div class="fg"><label>Houve Erro?</label>
+          <select id="rhErr" onchange="document.getElementById('cRHE').classList.toggle('vis',this.value==='Sim')">
+            <option value="Não">Não</option><option value="Sim">Sim</option>
+          </select></div>
+        <div class="fg cond" id="cRHE"><label>Qual Erro?</label>
+          <input type="text" id="rhQErr" placeholder="Descreva o erro"></div>
+      </div>
+    </div>
+    <div class="mft">
+      <button class="btn btn-ghost" onclick="closeMod('mEditRH')">Cancelar</button>
+      <button class="btn btn-teal" onclick="saveEditRH()"><i class="fas fa-save"></i> Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL FIN EXP -->
+<div class="mbd" id="mFinE">
+  <div class="modal sm">
+    <div class="mhd"><h3><i class="fas fa-flag-checkered" style="color:var(--blue)"></i> Finalizar Carregamento</h3>
+      <button class="mcl" onclick="closeMod('mFinE')">×</button></div>
+    <div class="mbo">
+      <div class="warn"><i class="fas fa-exclamation-triangle"></i>
+        Após finalizar, o carregamento é movido ao <strong>Histórico</strong> e não pode mais ser editado integralmente.</div>
+      <div class="cicon ci-g"><i class="fas fa-flag-checkered"></i></div>
+      <p class="ctitle" id="finET"></p><p class="ctext" id="finEX"></p>
+    </div>
+    <div class="mft">
+      <button class="btn btn-ghost" onclick="closeMod('mFinE')">Cancelar</button>
+      <button class="btn btn-green" onclick="confFinE()"><i class="fas fa-check"></i> Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL FIN REC -->
+<div class="mbd" id="mFinR">
+  <div class="modal sm">
+    <div class="mhd"><h3><i class="fas fa-check-circle" style="color:var(--teal)"></i> Finalizar Recebimento</h3>
+      <button class="mcl" onclick="closeMod('mFinR')">×</button></div>
+    <div class="mbo">
+      <div class="warn"><i class="fas fa-exclamation-triangle"></i>
+        Após finalizar, a nota é movida ao <strong>Histórico</strong> e não pode mais ser editada integralmente.</div>
+      <div class="cicon ci-t"><i class="fas fa-check-circle"></i></div>
+      <p class="ctitle" id="finRT"></p><p class="ctext" id="finRX"></p>
+    </div>
+    <div class="mft">
+      <button class="btn btn-ghost" onclick="closeMod('mFinR')">Cancelar</button>
+      <button class="btn btn-teal" onclick="confFinR()"><i class="fas fa-check"></i> Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DEL -->
+<div class="mbd" id="mDel">
+  <div class="modal sm">
+    <div class="mhd"><h3><i class="fas fa-trash" style="color:var(--red)"></i> Excluir Registro</h3>
+      <button class="mcl" onclick="closeMod('mDel')">×</button></div>
+    <div class="mbo">
+      <div class="cicon ci-r"><i class="fas fa-trash"></i></div>
+      <p class="ctitle">Excluir este registro?</p>
+      <p class="ctext">Esta ação é permanente e não pode ser desfeita.</p>
+    </div>
+    <div class="mft">
+      <button class="btn btn-ghost" onclick="closeMod('mDel')">Cancelar</button>
+      <button class="btn btn-red" onclick="confDel()"><i class="fas fa-trash"></i> Excluir</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ══════════════════════════════════════════════
+   ⚙️  CONFIG
+   ══════════════════════════════════════════════ */
+const SB_URL  = 'https://vylffnxkpucsbzkrqxsf.supabase.co';
+const SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ5bGZmbnhrcHVjc2J6a3JxeHNmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyOTY3NDgsImV4cCI6MjA5Mjg3Mjc0OH0.TNj17jr6Es43aueOIGZgLNci6emEY_gP75xE1mBdEuI';
+
+const TE  = 'expedicao_andamento';
+const TEH = 'expedicao_historico';
+const TR  = 'recebimento_andamento';
+const TRH = 'recebimento_historico';
+
+const FILIAL_MAP = {
+  'movix@movix.com.br': 'AP. DE GOIANIA - MOVIX',
+  'demeter@demeter.com.br': 'PARAGOMINAS - DEMETER',
+  'milium@milium.com.br': 'RIO VERDE - MILIUM',
+  'balsas@balsas.com.br': 'SIMBIOSE BALSAS',
+  'luizeduardo@luizeduardo.com.br': 'SIMBIOSE LUIZ EDUARDO MAGALHÃES',
+  'uberlandia@uberlandia.com.br': 'SIMBIOSE UBERLANDIA',
+  'focal@focal.com.br': 'VARGINHA - FOCAL',
+  'biograss@biograss.com.br': 'RIO VERDE - BIOGRASS',
+  'lineus@lineus.com.br': 'CAMPO MOURÃO - LINEUS',
+  'canarana@canarana.com.br': 'SIMBIOSE CANARANA',
+  'dourados@dourados.com.br': 'SIMBIOSE DOURADOS',
+  'lucasrioverde@lucasrioverde.com.br': 'SIMBIOSE LUCAS RIO VERDE',
+  'portonacional@portonacional.com.br': 'SIMBIOSE PORTO NACIONAL',
+  'ribeiraopreto@ribeiraopreto.com.br': 'SIMBIOSE RIBEIRÃO PRETO',
+  'vilhena@vilhena.com.br': 'SIMBIOSE VILHENA',
+  'harmonica@harmonica.com.br': 'SINOP - HARMONICA',
+};
+
+const TIPOS = ['','Fracionado','Dedicado','Retira','Transferência'];
+const UFS   = ['','AC','AL','AM','AP','BA','CE','DF','ES','GO','MA','MG','MS','MT','PA','PB','PE','PI','PR','RJ','RN','RO','RR','RS','SC','SE','SP','TO'];
+
+const { createClient } = supabase;
+const sb = createClient(SB_URL, SB_ANON);
+
+/* ── STATE ── */
+let me='', filial='';
+let expA=[], expHA=[], expHF=[], editEid=null, finEid=null, editEHid=null;
+let recA=[], recHA=[], recHF=[], editRid=null, finRid=null, editRHid=null;
+let delId=null, delTbl=null;
+
+/* ── UTILS ── */
+function toast(msg,t='ok',d=3500){
+  const el=document.createElement('div');
+  const ic={ok:'fa-check-circle',err:'fa-times-circle',inf:'fa-info-circle'};
+  el.className=`toast t${t}`;
+  el.innerHTML=`<i class="fas ${ic[t]||'fa-info-circle'}"></i> ${msg}`;
+  document.getElementById('toastC').appendChild(el);
+  setTimeout(()=>{el.style.opacity='0';el.style.transition='opacity .3s';setTimeout(()=>el.remove(),300);},d);
+}
+function lov(v,t='Aguarde...'){document.getElementById('lovTxt').textContent=t;document.getElementById('lov').classList.toggle('vis',v)}
+function fdt(s){
+  if(!s)return'—';
+  const m=s.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
+  if(m)return`${m[3]}/${m[2]}/${m[1]} ${m[4]}:${m[5]}`;
+  const d=s.match(/^(\d{4})-(\d{2})-(\d{2])$/);
+  if(d)return`${d[3]}/${d[2]}/${d[1]}`;
+  return s;
+}
+function fdate(s){if(!s)return'—';const d=s.match(/^(\d{4})-(\d{2})-(\d{2})/);return d?`${d[3]}/${d[2]}/${d[1]}`:'—'}
+function openMod(id){document.getElementById(id).classList.add('open')}
+function closeMod(id){document.getElementById(id).classList.remove('open')}
+function v(id){return document.getElementById(id)?.value?.trim()||null}
+function vn(id){const x=document.getElementById(id)?.value;return x?parseFloat(x):null}
+function sel(id,val){const el=document.getElementById(id);if(el)el.value=val||''}
+function addErr(id){document.getElementById(id)?.classList.add('err')}
+
+/* ── AUTH ── */
+async function doLogin(){
+  const email=document.getElementById('lEmail').value.trim();
+  const pass=document.getElementById('lPass').value;
+  const errEl=document.getElementById('lErr');
+  const btn=document.getElementById('lBtn');
+  errEl.style.display='none';
+  if(!email||!pass){document.getElementById('lErrTxt').textContent='Preencha e-mail e senha.';errEl.style.display='flex';return}
+  btn.disabled=true;btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Entrando...';
+  const{data,error}=await sb.auth.signInWithPassword({email,password:pass});
+  if(error||!data.user){
+    document.getElementById('lErrTxt').textContent=error?.message||'Credenciais inválidas.';
+    errEl.style.display='flex';btn.disabled=false;btn.innerHTML='<i class="fas fa-sign-in-alt"></i> Entrar';return;
+  }
+  me=data.user;filial=FILIAL_MAP[email.toLowerCase()]||email;startApp();
+}
+async function doLogout(){
+  await sb.auth.signOut();me=null;filial='';
+  document.getElementById('app').style.display='none';
+  document.getElementById('loginScreen').style.display='flex';
+  document.getElementById('lEmail').value='';document.getElementById('lPass').value='';
+}
+document.getElementById('lPass').addEventListener('keypress',e=>{if(e.key==='Enter')doLogin()});
+window.addEventListener('DOMContentLoaded',async()=>{
+  const{data}=await sb.auth.getSession();
+  if(data.session?.user){me=data.session.user;filial=FILIAL_MAP[me.email?.toLowerCase()]||me.email||'';startApp();}
+});
+
+/* ── INIT ── */
+function startApp(){
+  document.getElementById('loginScreen').style.display='none';
+  document.getElementById('app').style.display='flex';
+  document.getElementById('filialPill').textContent=filial;
+  const hoje=new Date().toISOString().slice(0,10);
+  const ha30=new Date();ha30.setDate(ha30.getDate()-30);const h30=ha30.toISOString().slice(0,10);
+  ['hEDe','hRDe'].forEach(id=>document.getElementById(id).value=h30);
+  ['hEAte','hRAte'].forEach(id=>document.getElementById(id).value=hoje);
+  loadExp();loadRec();
+}
+
+/* ── TAB SWITCH ── */
+const TABS={exp:{btn:'tE',p:'pExp'},expH:{btn:'tEH',p:'pExpH'},rec:{btn:'tR',p:'pRec'},recH:{btn:'tRH',p:'pRecH'}};
+function goTab(t){
+  Object.entries(TABS).forEach(([k,v])=>{
+    document.getElementById(v.btn).classList.toggle('active',k===t);
+    document.getElementById(v.p).style.display=k===t?'block':'none';
+  });
+  if(t==='expH')loadHistExp();
+  if(t==='recH')loadHistRec();
+}
+
+/* ══════════════════════════════════════════════
+   EXPEDIÇÃO — ANDAMENTO
+   ══════════════════════════════════════════════ */
+function limExp(){
+  ['eP','eCl','eCid','ePal','eNF','eTr','eHP','eEmp','eSepI','eSepF','eOC','eChT','eCarr','eTErr']
+    .forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});
+  sel('eUF','');sel('eTipo','');sel('eErr','Não');
+  document.getElementById('cEE').classList.remove('vis');
+  document.querySelectorAll('#pExp .err').forEach(el=>el.classList.remove('err'));
+}
+
+async function salExp(){
+  let ok=true;
+  if(!v('eP')){addErr('eP');ok=false}
+  if(!v('eCl')){addErr('eCl');ok=false}
+  if(document.getElementById('eErr').value==='Sim'&&!v('eTErr')){addErr('eTErr');ok=false}
+  if(!ok){toast('Preencha os campos obrigatórios.','err');return}
+  const row={filial,pedidos:v('eP'),cliente:v('eCl'),cidade:v('eCid'),uf:v('eUF'),
+    paletes:vn('ePal'),nota_fiscal:v('eNF'),transportadora:v('eTr'),
+    tipo_carregamento:document.getElementById('eTipo').value||null,
+    hora_programada:v('eHP'),data_empenho:v('eEmp'),sep_inicio:v('eSepI'),sep_fim:v('eSepF'),
+    oc_enviada:v('eOC'),chegada_transportadora:v('eChT'),data_carregamento:v('eCarr'),
+    houve_erro:document.getElementById('eErr').value,
+    tipo_erro:document.getElementById('eErr').value==='Sim'?v('eTErr'):null,
+    status:'em_andamento',criado_em:new Date().toISOString(),criado_por:me.email};
+  lov(true,'Salvando pedido...');
+  const{error}=await sb.from(TE).insert(row);
+  lov(false);
+  if(error){toast('Erro: '+error.message,'err');return}
+  toast('Pedido salvo!');limExp();await loadExp();
+}
+
+async function loadExp(){
+  const{data,error}=await sb.from(TE).select('*').eq('filial',filial).order('criado_em',{ascending:false});
+  if(error){toast('Erro ao carregar: '+error.message,'err');return}
+  expA=data||[];renderExpA();document.getElementById('bdgE').textContent=expA.length;
+}
+
+function renderExpA(){
+  const w=document.getElementById('wE'),em=document.getElementById('emE'),tb=document.getElementById('tbE');
+  if(!expA.length){w.style.display='none';em.style.display='block';return}
+  w.style.display='block';em.style.display='none';
+  tb.innerHTML=expA.map(p=>`<tr>
+    <td><strong>${p.pedidos||'—'}</strong></td>
+    <td title="${p.cliente||''}">${p.cliente||'—'}</td>
+    <td>${p.cidade||'—'}</td><td>${p.uf||'—'}</td>
+    <td>${p.paletes!=null?p.paletes:'—'}</td><td>${p.nota_fiscal||'—'}</td>
+    <td>${p.transportadora||'—'}</td><td>${p.tipo_carregamento||'—'}</td><td>${p.hora_programada||'—'}</td>
+    <td>${fdt(p.data_empenho)}</td><td>${fdt(p.sep_inicio)}</td><td>${fdt(p.sep_fim)}</td>
+    <td>${fdt(p.oc_enviada)}</td><td>${fdt(p.chegada_transportadora)}</td><td>${fdt(p.data_carregamento)}</td>
+    <td>${p.houve_erro==='Sim'?'<span class="badge b-err">Sim</span>':'<span class="badge b-ok">Não</span>'}</td>
+    <td><div class="racts">
+      <button class="bsm" title="Editar" onclick="openEditE('${p.id}')"><i class="fas fa-pencil-alt"></i></button>
+      <button class="bsm fin" title="Finalizar" onclick="openFinE('${p.id}')"><i class="fas fa-flag-checkered"></i></button>
+      <button class="bsm del" title="Excluir" onclick="openDel('${p.id}','${TE}')"><i class="fas fa-trash"></i></button>
+    </div></td></tr>`).join('');
+}
+
+/* EDIT EXP ANDAMENTO */
+function openEditE(id){
+  const p=expA.find(x=>x.id===id);if(!p)return;editEid=id;
+  const ev=p.houve_erro==='Sim';
+  document.getElementById('editEF').innerHTML=`
+    <div class="sdiv"><i class="fas fa-info-circle"></i> Identificação</div>
+    <div class="fg"><label>Pedido</label><input type="text" id="xP" value="${p.pedidos||''}"></div>
+    <div class="fg fw"><label>Cliente</label><input type="text" id="xCl" value="${p.cliente||''}"></div>
+    <div class="fg"><label>Cidade</label><input type="text" id="xCid" value="${p.cidade||''}"></div>
+    <div class="fg"><label>UF</label><select id="xUF">${UFS.map(u=>`<option value="${u}" ${p.uf===u?'selected':''}>${u||'—'}</option>`).join('')}</select></div>
+    <div class="fg"><label>Paletes</label><input type="number" id="xPal" step="0.5" min="0" value="${p.paletes??''}"></div>
+    <div class="fg"><label>Nota Fiscal</label><input type="text" id="xNF" value="${p.nota_fiscal||''}"></div>
+    <div class="fg"><label>Transportadora</label><input type="text" id="xTr" value="${p.transportadora||''}"></div>
+    <div class="fg"><label>Tipo</label><select id="xTipo">${TIPOS.map(t=>`<option value="${t}" ${p.tipo_carregamento===t?'selected':''}>${t||'—'}</option>`).join('')}</select></div>
+    <div class="fg"><label>Hora Prog.</label><input type="time" id="xHP" value="${p.hora_programada||''}"></div>
+    <div class="sdiv"><i class="fas fa-calendar-alt"></i> Datas e Horários</div>
+    <div class="fg"><label>Empenho</label><input type="datetime-local" id="xEmp" value="${p.data_empenho||''}"></div>
+    <div class="fg"><label>Sep. Início</label><input type="datetime-local" id="xSepI" value="${p.sep_inicio||''}"></div>
+    <div class="fg"><label>Sep. Fim</label><input type="datetime-local" id="xSepF" value="${p.sep_fim||''}"></div>
+    <div class="fg"><label>OC Enviada</label><input type="datetime-local" id="xOC" value="${p.oc_enviada||''}"></div>
+    <div class="fg"><label>Chegada Transp.</label><input type="datetime-local" id="xChT" value="${p.chegada_transportadora||''}"></div>
+    <div class="fg"><label>Carregamento</label><input type="datetime-local" id="xCarr" value="${p.data_carregamento||''}"></div>
+    <div class="sdiv"><i class="fas fa-exclamation-triangle"></i> Erros</div>
+    <div class="fg"><label>Houve Erro?</label>
+      <select id="xErr" onchange="document.getElementById('xcEE').classList.toggle('vis',this.value==='Sim')">
+        <option value="Não" ${!ev?'selected':''}>Não</option><option value="Sim" ${ev?'selected':''}>Sim</option>
+      </select></div>
+    <div class="fg cond ${ev?'vis':''}" id="xcEE"><label>Tipo de Erro</label>
+      <input type="text" id="xTErr" value="${p.tipo_erro||''}"></div>`;
+  openMod('mEditE');
+}
+async function saveEditE(){
+  if(!editEid)return;lov(true,'Salvando...');
+  const upd={pedidos:v('xP'),cliente:v('xCl'),cidade:v('xCid'),uf:v('xUF'),
+    paletes:vn('xPal'),nota_fiscal:v('xNF'),transportadora:v('xTr'),
+    tipo_carregamento:document.getElementById('xTipo')?.value||null,
+    hora_programada:v('xHP'),data_empenho:v('xEmp'),sep_inicio:v('xSepI'),sep_fim:v('xSepF'),
+    oc_enviada:v('xOC'),chegada_transportadora:v('xChT'),data_carregamento:v('xCarr'),
+    houve_erro:document.getElementById('xErr')?.value||'Não',
+    tipo_erro:document.getElementById('xErr')?.value==='Sim'?v('xTErr'):null,
+    atualizado_em:new Date().toISOString(),atualizado_por:me.email};
+  const{error}=await sb.from(TE).update(upd).eq('id',editEid);
+  lov(false);
+  if(error){toast('Erro: '+error.message,'err');return}
+  toast('Salvo!');closeMod('mEditE');editEid=null;await loadExp();
+}
+
+/* EDIT ERRO EXP HISTÓRICO */
+function openEditEH(id){
+  const p=expHA.find(x=>x.id===id);if(!p)return;editEHid=id;
+  const ev=p.houve_erro==='Sim';
+  document.getElementById('editEHinfo').textContent=`Pedido: ${p.pedidos||'—'} | Cliente: ${p.cliente||'—'}`;
+  sel('ehErr', p.houve_erro||'Não');
+  const el=document.getElementById('ehTErr');if(el)el.value=p.tipo_erro||'';
+  document.getElementById('cEHE').classList.toggle('vis',ev);
+  openMod('mEditEH');
+}
+async function saveEditEH(){
+  if(!editEHid)return;lov(true,'Salvando...');
+  const upd={houve_erro:document.getElementById('ehErr')?.value||'Não',
+    tipo_erro:document.getElementById('ehErr')?.value==='Sim'?v('ehTErr'):null,
+    atualizado_em:new Date().toISOString(),atualizado_por:me.email};
+  const{error}=await sb.from(TEH).update(upd).eq('id',editEHid);
+  lov(false);
+  if(error){toast('Erro: '+error.message,'err');return}
+  toast('Erro atualizado!');closeMod('mEditEH');editEHid=null;await loadHistExp();
+}
+
+/* FIN EXP */
+function openFinE(id){
+  const p=expA.find(x=>x.id===id);if(!p)return;finEid=id;
+  document.getElementById('finET').textContent=`Finalizar pedido ${p.pedidos||id}?`;
+  document.getElementById('finEX').textContent=`Cliente: ${p.cliente||'—'} | Transp: ${p.transportadora||'—'}`;
+  openMod('mFinE');
+}
+async function confFinE(){
+  if(!finEid)return;
+  const p=expA.find(x=>x.id===finEid);if(!p)return;
+  lov(true,'Finalizando...');
+  const h={...p};delete h.id;h.status='finalizado';h.finalizado_em=new Date().toISOString();h.finalizado_por=me.email;
+  const{error:e1}=await sb.from(TEH).insert(h);
+  if(e1){lov(false);toast('Erro: '+e1.message,'err');return}
+  const{error:e2}=await sb.from(TE).delete().eq('id',finEid);
+  lov(false);if(e2){toast('Erro: '+e2.message,'err');return}
+  toast('Finalizado e movido ao histórico!','ok',4000);
+  closeMod('mFinE');finEid=null;await loadExp();
+}
+
+/* ══════════════════════════════════════════════
+   EXPEDIÇÃO — HISTÓRICO
+   ══════════════════════════════════════════════ */
+async function loadHistExp(){
+  const de=document.getElementById('hEDe').value,ate=document.getElementById('hEAte').value;
+  lov(true,'Carregando histórico...');
+  let q=sb.from(TEH).select('*').eq('filial',filial).order('finalizado_em',{ascending:false});
+  if(de)q=q.gte('finalizado_em',de+'T00:00:00');
+  if(ate)q=q.lte('finalizado_em',ate+'T23:59:59');
+  const{data,error}=await q;lov(false);
+  if(error){toast('Erro: '+error.message,'err');return}
+  expHA=data||[];expHF=[...expHA];
+  document.getElementById('bdgEH').textContent=expHA.length;
+  filterHistExp();renderKpiE();
+}
+function filterHistExp(){
+  const b=document.getElementById('hEBusca').value.toLowerCase().trim();
+  expHF=b?expHA.filter(p=>(p.pedidos||'').toLowerCase().includes(b)||(p.cliente||'').toLowerCase().includes(b)||(p.transportadora||'').toLowerCase().includes(b)):[...expHA];
+  renderHistExp();
+}
+function renderHistExp(){
+  const w=document.getElementById('wEH'),em=document.getElementById('emEH'),tb=document.getElementById('tbEH');
+  document.getElementById('cntE').textContent=`${expHF.length} registro${expHF.length!==1?'s':''}`;
+  if(!expHF.length){w.style.display='none';em.style.display='block';return}
+  w.style.display='block';em.style.display='none';
+  tb.innerHTML=expHF.map(p=>`<tr>
+    <td><strong>${p.pedidos||'—'}</strong></td>
+    <td title="${p.cliente||''}">${p.cliente||'—'}</td>
+    <td>${p.cidade||'—'}</td><td>${p.uf||'—'}</td>
+    <td>${p.paletes!=null?p.paletes:'—'}</td><td>${p.nota_fiscal||'—'}</td>
+    <td>${p.transportadora||'—'}</td><td>${p.tipo_carregamento||'—'}</td><td>${p.hora_programada||'—'}</td>
+    <td>${fdt(p.data_empenho)}</td><td>${fdt(p.sep_inicio)}</td><td>${fdt(p.sep_fim)}</td>
+    <td>${fdt(p.oc_enviada)}</td><td>${fdt(p.chegada_transportadora)}</td><td>${fdt(p.data_carregamento)}</td>
+    <td>${p.houve_erro==='Sim'?'<span class="badge b-err">Sim</span>':'<span class="badge b-ok">Não</span>'}</td>
+    <td style="font-size:.68rem;color:var(--gray-400)">${fdt(p.finalizado_em)}</td>
+    <td><button class="bsm" title="Editar erro" onclick="openEditEH('${p.id}')"><i class="fas fa-pencil-alt"></i></button></td>
+  </tr>`).join('');
+}
+function renderKpiE(){
+  const el=document.getElementById('kpiE'),d=expHA;
+  if(!d.length){el.style.display='none';return}
+  const tot=d.length,pal=d.reduce((a,p)=>a+(parseFloat(p.paletes)||0),0);
+  const err=d.filter(p=>p.houve_erro==='Sim').length,taxa=tot?((err/tot)*100).toFixed(1):'0.0';
+  el.style.display='grid';
+  el.innerHTML=[{v:tot,l:'Total'},{v:pal.toFixed(1),l:'Paletes'},{v:err,l:'Com Erro'},{v:taxa+'%',l:'Taxa Erro'}]
+    .map(k=>`<div class="kc"><div class="kval">${k.v}</div><div class="klbl">${k.l}</div></div>`).join('');
+}
+
+/* ══════════════════════════════════════════════
+   RECEBIMENTO — ANDAMENTO
+   ══════════════════════════════════════════════ */
+function limRec(){
+  ['rNF','rCF','rTr','rArm','rDR','rDL','rObs','rQE']
+    .forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});
+  sel('rErr','Não');document.getElementById('cRE').classList.remove('vis');
+  document.querySelectorAll('#pRec .err').forEach(el=>el.classList.remove('err'));
+}
+async function salRec(){
+  let ok=true;
+  if(!v('rNF')){addErr('rNF');ok=false}
+  if(!v('rCF')){addErr('rCF');ok=false}
+  if(!document.getElementById('rDR').value){addErr('rDR');ok=false}
+  if(document.getElementById('rErr').value==='Sim'&&!v('rQE')){addErr('rQE');ok=false}
+  if(!ok){toast('Preencha os campos obrigatórios.','err');return}
+  const row={filial,nf:v('rNF'),cliente_filial:v('rCF'),transportadora:v('rTr'),armazem:v('rArm'),
+    data_recebimento:document.getElementById('rDR').value||null,
+    data_lancamento:document.getElementById('rDL').value||null,
+    observacao:v('rObs'),houve_erro:document.getElementById('rErr').value,
+    qual_erro:document.getElementById('rErr').value==='Sim'?v('rQE'):null,
+    status:'em_andamento',criado_em:new Date().toISOString(),criado_por:me.email};
+  lov(true,'Salvando nota...');
+  const{error}=await sb.from(TR).insert(row);
+  lov(false);if(error){toast('Erro: '+error.message,'err');return}
+  toast('Nota salva!');limRec();await loadRec();
+}
+async function loadRec(){
+  const{data,error}=await sb.from(TR).select('*').eq('filial',filial).order('criado_em',{ascending:false});
+  if(error){toast('Erro ao carregar: '+error.message,'err');return}
+  recA=data||[];renderRecA();document.getElementById('bdgR').textContent=recA.length;
+}
+function renderRecA(){
+  const w=document.getElementById('wR'),em=document.getElementById('emR'),tb=document.getElementById('tbR');
+  if(!recA.length){w.style.display='none';em.style.display='block';return}
+  w.style.display='block';em.style.display='none';
+  tb.innerHTML=recA.map(p=>`<tr>
+    <td><strong>${p.nf||'—'}</strong></td>
+    <td title="${p.cliente_filial||''}">${p.cliente_filial||'—'}</td>
+    <td>${p.transportadora||'—'}</td><td>${fdate(p.data_recebimento)}</td>
+    <td>${p.data_lancamento?`<span class="badge b-lanc">${fdate(p.data_lancamento)}</span>`:'<span class="badge b-pend">Pendente</span>'}</td>
+    <td>${p.armazem||'—'}</td>
+    <td title="${p.observacao||''}" style="max-width:150px;overflow:hidden;text-overflow:ellipsis">${p.observacao||'—'}</td>
+    <td>${p.houve_erro==='Sim'?'<span class="badge b-err">Sim</span>':'<span class="badge b-ok">Não</span>'}</td>
+    <td><div class="racts">
+      <button class="bsm te" title="Editar" onclick="openEditR('${p.id}')"><i class="fas fa-pencil-alt"></i></button>
+      <button class="bsm fin" title="Finalizar" onclick="openFinR('${p.id}')"><i class="fas fa-check-circle"></i></button>
+      <button class="bsm del" title="Excluir" onclick="openDel('${p.id}','${TR}')"><i class="fas fa-trash"></i></button>
+    </div></td></tr>`).join('');
+}
+
+/* EDIT REC ANDAMENTO */
+function openEditR(id){
+  const p=recA.find(x=>x.id===id);if(!p)return;editRid=id;
+  const ev=p.houve_erro==='Sim';
+  document.getElementById('editRF').innerHTML=`
+    <div class="sdiv" style="color:var(--teal-d)"><i class="fas fa-file-invoice"></i> Dados da Nota</div>
+    <div class="fg"><label>NF</label><input type="text" id="yNF" value="${p.nf||''}"></div>
+    <div class="fg fw"><label>Cliente / Filial</label><input type="text" id="yCF" value="${p.cliente_filial||''}"></div>
+    <div class="fg"><label>Transportadora</label><input type="text" id="yTr" value="${p.transportadora||''}"></div>
+    <div class="fg"><label>Armazém</label><input type="text" id="yArm" value="${p.armazem||''}"></div>
+    <div class="sdiv" style="color:var(--teal-d)"><i class="fas fa-calendar-alt"></i> Datas</div>
+    <div class="fg"><label>Data Recebimento</label><input type="date" id="yDR" value="${p.data_recebimento||''}"></div>
+    <div class="fg"><label>Data Lançamento</label><input type="date" id="yDL" value="${p.data_lancamento||''}"></div>
+    <div class="sdiv" style="color:var(--teal-d)"><i class="fas fa-comment-alt"></i> Observações e Erros</div>
+    <div class="fg ff"><label>Observação</label><textarea id="yObs">${p.observacao||''}</textarea></div>
+    <div class="fg"><label>Houve Erro?</label>
+      <select id="yErr" onchange="document.getElementById('ycRE').classList.toggle('vis',this.value==='Sim')">
+        <option value="Não" ${!ev?'selected':''}>Não</option><option value="Sim" ${ev?'selected':''}>Sim</option>
+      </select></div>
+    <div class="fg cond ${ev?'vis':''}" id="ycRE"><label>Qual Erro?</label>
+      <input type="text" id="yQE" value="${p.qual_erro||''}"></div>`;
+  openMod('mEditR');
+}
+async function saveEditR(){
+  if(!editRid)return;lov(true,'Salvando...');
+  const upd={nf:v('yNF'),cliente_filial:v('yCF'),transportadora:v('yTr'),armazem:v('yArm'),
+    data_recebimento:document.getElementById('yDR')?.value||null,
+    data_lancamento:document.getElementById('yDL')?.value||null,
+    observacao:v('yObs'),houve_erro:document.getElementById('yErr')?.value||'Não',
+    qual_erro:document.getElementById('yErr')?.value==='Sim'?v('yQE'):null,
+    atualizado_em:new Date().toISOString(),atualizado_por:me.email};
+  const{error}=await sb.from(TR).update(upd).eq('id',editRid);
+  lov(false);if(error){toast('Erro: '+error.message,'err');return}
+  toast('Salvo!');closeMod('mEditR');editRid=null;await loadRec();
+}
+
+/* EDIT ERRO REC HISTÓRICO */
+function openEditRH(id){
+  const p=recHA.find(x=>x.id===id);if(!p)return;editRHid=id;
+  const ev=p.houve_erro==='Sim';
+  document.getElementById('editRHinfo').textContent=`NF: ${p.nf||'—'} | Cliente: ${p.cliente_filial||'—'}`;
+  sel('rhErr',p.houve_erro||'Não');
+  const el=document.getElementById('rhQErr');if(el)el.value=p.qual_erro||'';
+  document.getElementById('cRHE').classList.toggle('vis',ev);
+  openMod('mEditRH');
+}
+async function saveEditRH(){
+  if(!editRHid)return;lov(true,'Salvando...');
+  const upd={houve_erro:document.getElementById('rhErr')?.value||'Não',
+    qual_erro:document.getElementById('rhErr')?.value==='Sim'?v('rhQErr'):null,
+    atualizado_em:new Date().toISOString(),atualizado_por:me.email};
+  const{error}=await sb.from(TRH).update(upd).eq('id',editRHid);
+  lov(false);if(error){toast('Erro: '+error.message,'err');return}
+  toast('Erro atualizado!');closeMod('mEditRH');editRHid=null;await loadHistRec();
+}
+
+/* FIN REC */
+function openFinR(id){
+  const p=recA.find(x=>x.id===id);if(!p)return;finRid=id;
+  document.getElementById('finRT').textContent=`Finalizar NF ${p.nf||id}?`;
+  document.getElementById('finRX').textContent=`Cliente: ${p.cliente_filial||'—'} | Transp: ${p.transportadora||'—'}`;
+  openMod('mFinR');
+}
+async function confFinR(){
+  if(!finRid)return;
+  const p=recA.find(x=>x.id===finRid);if(!p)return;
+  lov(true,'Finalizando...');
+  const h={...p};delete h.id;h.status='finalizado';h.finalizado_em=new Date().toISOString();h.finalizado_por=me.email;
+  const{error:e1}=await sb.from(TRH).insert(h);
+  if(e1){lov(false);toast('Erro: '+e1.message,'err');return}
+  const{error:e2}=await sb.from(TR).delete().eq('id',finRid);
+  lov(false);if(e2){toast('Erro: '+e2.message,'err');return}
+  toast('Nota finalizada e movida ao histórico!','ok',4000);
+  closeMod('mFinR');finRid=null;await loadRec();
+}
+
+/* ══════════════════════════════════════════════
+   RECEBIMENTO — HISTÓRICO
+   ══════════════════════════════════════════════ */
+async function loadHistRec(){
+  const de=document.getElementById('hRDe').value,ate=document.getElementById('hRAte').value;
+  lov(true,'Carregando histórico...');
+  let q=sb.from(TRH).select('*').eq('filial',filial).order('finalizado_em',{ascending:false});
+  if(de)q=q.gte('finalizado_em',de+'T00:00:00');
+  if(ate)q=q.lte('finalizado_em',ate+'T23:59:59');
+  const{data,error}=await q;lov(false);
+  if(error){toast('Erro: '+error.message,'err');return}
+  recHA=data||[];recHF=[...recHA];
+  document.getElementById('bdgRH').textContent=recHA.length;
+  filterHistRec();renderKpiR();
+}
+function filterHistRec(){
+  const b=document.getElementById('hRBusca').value.toLowerCase().trim();
+  recHF=b?recHA.filter(p=>(p.nf||'').toLowerCase().includes(b)||(p.cliente_filial||'').toLowerCase().includes(b)||(p.transportadora||'').toLowerCase().includes(b)):[...recHA];
+  renderHistRec();
+}
+function renderHistRec(){
+  const w=document.getElementById('wRH'),em=document.getElementById('emRH'),tb=document.getElementById('tbRH');
+  document.getElementById('cntR').textContent=`${recHF.length} registro${recHF.length!==1?'s':''}`;
+  if(!recHF.length){w.style.display='none';em.style.display='block';return}
+  w.style.display='block';em.style.display='none';
+  tb.innerHTML=recHF.map(p=>`<tr>
+    <td><strong>${p.nf||'—'}</strong></td>
+    <td title="${p.cliente_filial||''}">${p.cliente_filial||'—'}</td>
+    <td>${p.transportadora||'—'}</td><td>${fdate(p.data_recebimento)}</td>
+    <td>${p.data_lancamento?`<span class="badge b-lanc">${fdate(p.data_lancamento)}</span>`:'<span class="badge b-pend">Pendente</span>'}</td>
+    <td>${p.armazem||'—'}</td>
+    <td title="${p.observacao||''}" style="max-width:150px;overflow:hidden;text-overflow:ellipsis">${p.observacao||'—'}</td>
+    <td>${p.houve_erro==='Sim'?'<span class="badge b-err">Sim</span>':'<span class="badge b-ok">Não</span>'}</td>
+    <td style="font-size:.68rem;color:var(--gray-400)">${fdt(p.finalizado_em)}</td>
+    <td><button class="bsm te" title="Editar erro" onclick="openEditRH('${p.id}')"><i class="fas fa-pencil-alt"></i></button></td>
+  </tr>`).join('');
+}
+function renderKpiR(){
+  const el=document.getElementById('kpiR'),d=recHA;
+  if(!d.length){el.style.display='none';return}
+  const tot=d.length,lanc=d.filter(p=>p.data_lancamento).length;
+  const err=d.filter(p=>p.houve_erro==='Sim').length,taxa=tot?((err/tot)*100).toFixed(1):'0.0';
+  el.style.display='grid';
+  el.innerHTML=[{v:tot,l:'Total'},{v:lanc,l:'Lançadas'},{v:tot-lanc,l:'Pendentes'},{v:taxa+'%',l:'Taxa Erro',tl:true}]
+    .map(k=>`<div class="kc${k.tl?' teal':''}"><div class="kval">${k.v}</div><div class="klbl">${k.l}</div></div>`).join('');
+}
+
+/* ══════════════════════════════════════════════
+   DEL / EXPORT / MISC
+   ══════════════════════════════════════════════ */
+function openDel(id,tbl){delId=id;delTbl=tbl;openMod('mDel')}
+async function confDel(){
+  if(!delId||!delTbl)return;lov(true,'Excluindo...');
+  const{error}=await sb.from(delTbl).delete().eq('id',delId);
+  lov(false);if(error){toast('Erro: '+error.message,'err');return}
+  toast('Excluído.','inf');closeMod('mDel');delId=null;delTbl=null;
+  await loadExp();await loadRec();
+}
+function limFH(t){
+  const hoje=new Date().toISOString().slice(0,10);
+  const ha30=new Date();ha30.setDate(ha30.getDate()-30);const h30=ha30.toISOString().slice(0,10);
+  if(t==='exp'){document.getElementById('hEDe').value=h30;document.getElementById('hEAte').value=hoje;document.getElementById('hEBusca').value='';loadHistExp();}
+  else{document.getElementById('hRDe').value=h30;document.getElementById('hRAte').value=hoje;document.getElementById('hRBusca').value='';loadHistRec();}
+}
+function exportCSV(tipo){
+  const data=tipo==='exp'?expHF:recHF;
+  if(!data.length){toast('Nenhum dado para exportar.','err');return}
+  let h,rows;
+  if(tipo==='exp'){
+    h=['Filial','Pedido','Cliente','Cidade','UF','Paletes','NF','Transportadora','Tipo','H.Prog',
+      'Empenho','Sep.Início','Sep.Fim','OC Enviada','Chegada T.','Carregamento','Houve Erro','Tipo Erro','Finalizado em'];
+    rows=data.map(p=>[p.filial||'',p.pedidos||'',p.cliente||'',p.cidade||'',p.uf||'',
+      p.paletes!=null?p.paletes:'',p.nota_fiscal||'',p.transportadora||'',p.tipo_carregamento||'',p.hora_programada||'',
+      fdt(p.data_empenho),fdt(p.sep_inicio),fdt(p.sep_fim),fdt(p.oc_enviada),fdt(p.chegada_transportadora),fdt(p.data_carregamento),
+      p.houve_erro||'',p.tipo_erro||'',fdt(p.finalizado_em)]);
+  }else{
+    h=['Filial','NF','Cliente/Filial','Transportadora','Data Recebimento','Data Lançamento','Armazém','Observação','Houve Erro','Qual Erro','Finalizado em'];
+    rows=data.map(p=>[p.filial||'',p.nf||'',p.cliente_filial||'',p.transportadora||'',
+      fdate(p.data_recebimento),fdate(p.data_lancamento),p.armazem||'',p.observacao||'',
+      p.houve_erro||'',p.qual_erro||'',fdt(p.finalizado_em)]);
+  }
+  const csv=[h,...rows].map(r=>r.map(c=>{const s=String(c);return(s.includes(';')||s.includes('"')||s.includes('\n'))?`"${s.replace(/"/g,'""')}"`:s}).join(';')).join('\n');
+  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;
+  a.download=`hist_${tipo}_${filial.replace(/\s/g,'_')}_${new Date().toISOString().slice(0,10)}.csv`;
+  a.style.display='none';document.body.appendChild(a);a.click();document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url),100);toast('CSV exportado!');
+}
+
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape')['mEditE','mEditEH','mEditR','mEditRH','mFinE','mFinR','mDel'].forEach(closeMod);
+});
+document.querySelectorAll('.mbd').forEach(bd=>{
+  bd.addEventListener('click',e=>{if(e.target===bd)bd.classList.remove('open')});
+});
+document.addEventListener('input',e=>{if(e.target.classList.contains('err'))e.target.classList.remove('err')});
+</script>
+</body>
+</html>
